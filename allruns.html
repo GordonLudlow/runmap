@@ -6,38 +6,22 @@
 html { height: 100% }
 body { height: 100%; margin: 0; padding: 0 }
 </style>
-<script type="text/javascript"
-src="http://maps.googleapis.com/maps/api/js?key=AIzaSyCyM0mrFrvnIbYkve4hWKY30cjVqY8VnMU">
-</script>
 <script type="text/javascript">
+
 
 var map;
 var latLongArray;
 var polyline=null;
 var polylineOptions;
-var mapLoaded=false;
-var filenames = []; // we'll still need this for reading the directory
-//var filedates = []; // this will go away
-//var sortedIndex = []; // this will go away
-var files = []; // this will replace filedates and sorted index
-var currentFile;
-var currentFileName;
-var currentFileIndex=0;
+var filenames = []; 
+var files = []; 
+var gpxhttp = [];
 var xmlhttp;
-var gpxhttp;
-var paused=false;
-var mapInitialized=false;
-var datesRead=false;
-var StateEnum = Object.freeze({readingIndex:0, readingDirectory:1, readingDates:2, playing:3});
-var state = StateEnum.readingIndex;
 
-if (typeof String.prototype.startsWith != 'function') 
-{
-	String.prototype.startsWith = function (str)
-	{
-		return this.slice(0, str.length) == str;
-	};
-}
+var mapInitialized=false;
+//var downloadTime=0;
+//var renderTime=0;
+//var startDownload=0;
 
 if (typeof XMLHttpRequest === "undefined") {
   XMLHttpRequest = function () {
@@ -54,112 +38,36 @@ if (typeof XMLHttpRequest === "undefined") {
 
 function initializeMap() 
 {
-	var mapOptions = {	center: new google.maps.LatLng(47.65, -122.10),
-						zoom: 10,
-						mapTypeId: google.maps.MapTypeId.ROADMAP };
-	map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
-	
-	google.maps.event.addListenerOnce(map, 'idle', function(){
-		//document.getElementById('trkpt').innerHTML = "Map loaded!";
-		mapLoaded=true;
-		if (datesRead)
-		{
-			readTrackData();
-		}		
-	});
-
-	google.maps.event.addListener(map,'tilesloaded',function(){
-		//document.getElementById('trkpt').innerHTML = "Map tiles loaded!";
-		mapLoaded=true;
-		if (datesRead)
-		{
-			readTrackData();
-		}
-	});
+    if (!mapInitialized)
+    {
+        var mapOptions = {	center: new google.maps.LatLng(47.65, -122.10),
+                            zoom: 10,
+                            mapTypeId: google.maps.MapTypeId.ROADMAP };
+        map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
+        mapInitialized=true;    
+    }
 }
 
-function readDateFromGpx()
+function handleXml(gpxhttp, currentFile, currentFileIndex)
 {
     if (gpxhttp.readyState == 4) // complete 
 	{
         if (gpxhttp.status == 200) // OK
 		{
-			document.getElementById('name').innerHTML = currentFileName;
+            //var startRender = performance.now();
+            //downloadTime = downloadTime + startRender - startDownload;
 
-			xmlDoc=gpxhttp.responseXML; 
-			if (xmlDoc != null)
-			{
-				var timeNodes = xmlDoc.getElementsByTagName('time');
-				if (timeNodes.length != 0)
-				{
-					var timeValue = timeNodes[0].firstChild.nodeValue;
-					var fileDate = new Date(timeValue);
-					//sortedIndex[currentFileIndex] = currentFileIndex;
-					
-					files[currentFileIndex] = {date:fileDate, name:currentFileName};
-					//document.getElementById('errors').innerHTML += ", " + currentFileName;
-					
-					document.getElementById('time').innerHTML = timeValue;
-				}
-			}
-			currentFileIndex++;
-			
-			if (currentFileIndex < filenames.length)
-			{
-				readDate();
-			}
-			else
-			{
-				datesRead=true;
-				currentFileIndex=0;
-
-				files.sort(function(a,b)
-				{
-					return a.date.getTime() - b.date.getTime();
-				});
-
-				document.getElementById('index').innerHTML = '<xml>';
-
-				for (var i=0; i<files.length;i++)
-				{
-					document.getElementById('index').innerHTML += '<file><date>'+files[i].date.toJSON()+'</date><name>'+files[i].name+'</name></file>\n';
-				}
-				document.getElementById('index').innerHTML += '</xml>';
-				
-				state = StateEnum.playing;
-				if (mapLoaded)
-				{
-					readTrackData();
-				}
-			}			
-		}
-	}
-}
-
-function handleXml()
-{
-	//document.getElementById('tick').innerHTML = "readyState=" + gpxhttp.readyState + ", status=" + gpxhttp.status;
-
-    if (gpxhttp.readyState == 4) // complete 
-	{
-        if (gpxhttp.status == 200) // OK
-		{
 			var xmlDoc=gpxhttp.responseXML; 
 			var xmlText=gpxhttp.responseText;
 			document.getElementById('filename').innerHTML = currentFile.name;
 			document.getElementById('currentFile').innerHTML = currentFileIndex+1;
 			//document.getElementById('contents').innerHTML = xmlText;
 			
-			if (xmlDoc == null)
-			{
-//				document.getElementById('time').innerHTML = "";
-//				document.getElementById('name').innerHTML = currentFile.name;
-//				//document.getElementById('trkpt').innerHTML = "invalid XML!";
-//				document.getElementById('errors').innerHTML += "Invalid xml: " + currentFile.name + "\n";
-//				return;
-                var parser = new DOMParser();
-                xmlDoc = parser.parseFromString(xmlhttp.responseText, "application/xml");
-			}
+			//if (xmlDoc == null)
+			//{
+            //    var parser = new DOMParser();
+            //    xmlDoc = parser.parseFromString(xmlhttp.responseText, "text\/xml");
+			//}
 			
 			var timeNodes = xmlDoc.getElementsByTagName('time');
 			var timeValue = "";
@@ -173,18 +81,12 @@ function handleXml()
 				timeValue = timeNodes[0].firstChild.nodeValue;
 				var date = new Date(timeValue);
 				document.getElementById('time').innerHTML = date.toDateString();
-				if (date.toDateString() != files[currentFileIndex].date.toDateString())//filedates[sortedIndex[currentFileIndex]].toDateString())
+				if (date.toDateString() != currentFile.date.toDateString())
 				{
 					document.getElementById('errors').innerHTML += "Date mismatch: " + currentFile.name + "contains " + date.toDateString() 
-						+ " expected " + files[currentFileIndex].date.toDateString()//filedates[sortedIndex[currentFileIndex]].toDateString()
+						+ " expected " + currentFile.date.toDateString()
 						+ "\n";
-					//document.getElementById('errors').innerHTML += "               currentFileIndex=" + currentFileIndex 
-					//	+ ", sortedIndex[currentFileIndex]=" + sortedIndex[currentFileIndex] + "\n"; 					
 				}
-				//else
-				//{
-				//	document.getElementById('errors').innerHTML += "Date ok: " + currentFileIndex + ", " + sortedIndex[currentFileIndex] + "\n"; 				
-				//}
 			}
 			
 			var nameNodes = xmlDoc.getElementsByTagName('name');
@@ -244,39 +146,21 @@ function handleXml()
 				polyline = new google.maps.Polyline(polylineOptions);
 				polyline.setMap(map);
 
-				if (paused)
-				{
-					map.setCenter(bounds.getCenter());
-				}
 			}
-	
-			if (!paused && currentFileIndex+1 < filenames.length)
-			{
-				currentFileIndex++;
-				readTrackData();
-			}
+            //renderTime = renderTime + performance.now() - startRender;
+            //document.getElementById('errors').innerHTML += "download " + downloadTime + ", render " + renderTime + "\n";
+
+//			if (currentFileIndex+1 < filenames.length)
+//			{
+//				currentFileIndex++;
+//				readTrackData();
+//			}
 		}
 	}		
 }
 
-function parseDirectory()
-{
-	state = StateEnum.readingDirectory;
-	xmlhttp=new XMLHttpRequest();
-	xmlhttp.open("GET","runs/");
-	xmlhttp.onreadystatechange = handleDirectoryListingHtml;
-	xmlhttp.send();	
-}
-
 function handleIndexXML()
 {
-	if (!mapInitialized)
-	{
-		initializeMap();
-		mapInitialized=true;
-	}
-
-	//document.getElementById('tick').innerHTML = "readyState=" + xmlhttp.readyState + ", status=" + xmlhttp.status;
     if (xmlhttp.readyState == 4) // complete 
 	{
         if (xmlhttp.status == 200) // OK
@@ -286,7 +170,6 @@ function handleIndexXML()
 			{
 				//document.getElementById('trkpt').innerHTML = "invalid XML!";
 				document.getElementById('errors').innerHTML += "Invalid xml: allruns.xml\n";
-				parseDirectory();
 				return;
 			}
 			var fileNodes = xmlDoc.getElementsByTagName('file');
@@ -294,7 +177,6 @@ function handleIndexXML()
 			{
 				//document.getElementById('trkpt').innerHTML = "invalid xml, no file tag."
 				document.getElementById('errors').innerHTML += "Invalid xml:  allruns.xml\n";				
-				parseDirectory();
 				return;
 			}
 
@@ -309,129 +191,34 @@ function handleIndexXML()
 				//sortedIndex[i] = i;
 				files[i] = {date:fileDate, name:filenames[i]};
 			}
-			datesRead = true; // TODO just go to state playing, get rid of datesRead
-			state = StateEnum.playing;
+
 			
 			//document.getElementById('contents').innerHTML = filenames;
 			document.getElementById('filename').innerHTML = filenames.length + " files";
 			document.getElementById('fileCount').innerHTML = filenames.length;			
-		}
-		else
-		{
-			parseDirectory();
+            
+            readTrackData();
+            
+
+            initializeMap();
 		}
 	}
-}
-
-function handleDirectoryListingHtml()
-{
-	//document.write("readyState=" + xmlhttp.readyState+"<br>");
-	//document.write("status=" + xmlhttp.status+"<br>");
-    if (xmlhttp.readyState == 4) // complete 
-	{
-        if (xmlhttp.status == 200) // OK
-		{
-			var xmlText=xmlhttp.responseText;
-			filenames = xmlText.match(/(?:<a href=")(\S*)(?=">)/g);
-			
-			for (var i = 0; i < filenames.length; i++) 
-			{
-				if (filenames[i].startsWith("<a href=\""))
-				{
-					filenames[i] = filenames[i].slice("<a href=\"".length);
-				}
-			}
-
-			for (var i = filenames.length-1; i >= 0; i--) 
-			{
-				if (filenames[i].startsWith("?C") || filenames[i] == "/")
-				{
-					filenames.splice(i, 1);
-				}
-			}	
-
-			document.getElementById('errors').innerHTML = filenames;
-			document.getElementById('filename').innerHTML = filenames.length + " files";
-			//document.getElementById('fileCount').innerHTML = filenames.length;
-			
-			state = StateEnum.readingDates;
-			readDate();
-			
-        }
-    }
-}
-function readDate()
-{
-	gpxhttp=new XMLHttpRequest();
-	currentFileName = filenames[currentFileIndex];
-	//document.getElementById('errors').innerHTML += "(" + currentFileIndex + "=>" + currentFileName + ")";
-	gpxhttp.open("GET","runs/"+currentFileName);
-	gpxhttp.onreadystatechange = readDateFromGpx;
-	gpxhttp.send();
 }
 
 function readTrackData()
 {
-	gpxhttp=new XMLHttpRequest();
-	currentFile = files[currentFileIndex];
-	gpxhttp.open("GET","runs/"+currentFile.name);
-	gpxhttp.onreadystatechange = handleXml;
-    //gpxhttp.setRequestHeader('accept-encoding','gzip');
-	gpxhttp.send();
-}
-
-function PauseDownloads()
-{
-	if (paused)
-	{
-		paused = false;
-		document.getElementById('pauseResume').innerHTML = "Pause";
-	}
-	else
-	{
-		paused = true;
-		document.getElementById('pauseResume').innerHTML = "Resume";
-	}
-}
-
-function PreviousFile()
-{
-	if (currentFileIndex>0)
-	{
-		if (!paused)
-		{
-			PauseDownloads();
-		}
-	
-		currentFileIndex--;
-
-		currentFile = files[currentFileIndex];//filenames[sortedIndex[currentFileIndex]];
-		gpxhttp.open("GET","runs/"+currentFile.name);
-		gpxhttp.onreadystatechange = handleXml;
-		gpxhttp.send();		
-		
-		//document.getElementById('tick').innerHTML = "currentFileIndex="+currentFileIndex+", sortedIndex="+sortedIndex[currentFileIndex]+", currentFile="+currentFile;
-	}
-}
-
-function NextFile()
-{
-	if (currentFileIndex<filenames.length-1)
-	{
-		if (!paused)
-		{
-			PauseDownloads();
-		}
-
-		currentFileIndex++;
-	
-		currentFile = files[currentFileIndex];//filenames[sortedIndex[currentFileIndex]];
-		gpxhttp.open("GET","runs/"+currentFile.name);
-		gpxhttp.onreadystatechange = handleXml;
-		gpxhttp.send();	
-
-		//document.getElementById('tick').innerHTML = "currentFileIndex="+currentFileIndex+", sortedIndex="+sortedIndex[currentFileIndex]+", currentFile="+currentFile;
-	}
+    //startDownload = performance.now();
+	//
+    
+    for (file = 0; file < files.length; file++) { 
+        gpxhttp[file]=new XMLHttpRequest();
+        gpxhttp[file].open("GET","runs/"+files[file].name+".gz");
+        gpxhttp[file].onreadystatechange = (function(i) { 
+            return function() { handleXml(gpxhttp[i], files[i], i); } })(file);
+        //gpxhttp.setRequestHeader('accept-encoding','gzip');
+        //gpxhttp.overrideMimeType('text\/xml; charset=x-user-defined');   
+        gpxhttp[file].send();
+    }    
 }
 
 </script>
@@ -445,14 +232,16 @@ xmlhttp.open("GET","allruns.xml");
 xmlhttp.onreadystatechange = handleIndexXML;
 xmlhttp.send();
 </script>
+<script type="text/javascript"
+src="http://maps.googleapis.com/maps/api/js?key=AIzaSyCyM0mrFrvnIbYkve4hWKY30cjVqY8VnMU&callback=initializeMap" async defer>
+</script>
 
 <div id="header" style="width:100%; height:10%;overflow:auto;">
 <!-- <textarea id=tick>no tick</textarea><br> -->
 
 <span id=name> </span><br/>
 <span id=time> </span><br/>
-<button id=prev type="button" onclick="PreviousFile()">Prev</button>(<span id=currentFile>0</span>&#x2F;<span id=fileCount>0</span>)<button id=next type="button" onclick="NextFile()">Next</button><button id=pauseResume type="button" onclick="PauseDownloads()">Pause</button>
-
+(<span id=currentFile>0</span>&#x2F;<span id=fileCount>0</span>)
 <P id=filename> </P>
 <textarea id=errors>Errors:
 </textarea>
