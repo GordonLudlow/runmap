@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+<title>Gordon's runs</title>
 <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
 <style type="text/css">
 html { height: 100% }
@@ -13,15 +14,13 @@ var map;
 var latLongArray;
 var polyline=null;
 var polylineOptions;
-var filenames = []; 
 var files = []; 
 var gpxhttp = [];
 var xmlhttp;
 
 var mapInitialized=false;
-//var downloadTime=0;
-//var renderTime=0;
-//var startDownload=0;
+var indexLoaded=false;
+var loadItems=0;
 
 if (typeof XMLHttpRequest === "undefined") {
   XMLHttpRequest = function () {
@@ -40,183 +39,103 @@ function initializeMap()
 {
     if (!mapInitialized)
     {
-        var mapOptions = {	center: new google.maps.LatLng(47.65, -122.10),
+        var mapOptions = { center: new google.maps.LatLng(47.65, -122.10),
                             zoom: 10,
                             mapTypeId: google.maps.MapTypeId.ROADMAP };
         map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
         mapInitialized=true;    
     }
+    if (indexLoaded)
+        readTrackData();    
 }
 
-function handleXml(gpxhttp, currentFile, currentFileIndex)
+function handleXml(gpxhttp)
 {
     if (gpxhttp.readyState == 4) // complete 
-	{
+    {
         if (gpxhttp.status == 200) // OK
-		{
-            //var startRender = performance.now();
-            //downloadTime = downloadTime + startRender - startDownload;
+        {
+            var xmlDoc=gpxhttp.responseXML; 
+            var xmlText=gpxhttp.responseText;
+            
+            var trkptNodes = xmlDoc.getElementsByTagName('trkpt');
 
-			var xmlDoc=gpxhttp.responseXML; 
-			var xmlText=gpxhttp.responseText;
-			document.getElementById('filename').innerHTML = currentFile.name;
-			document.getElementById('currentFile').innerHTML = currentFileIndex+1;
-			//document.getElementById('contents').innerHTML = xmlText;
-			
-			//if (xmlDoc == null)
-			//{
-            //    var parser = new DOMParser();
-            //    xmlDoc = parser.parseFromString(xmlhttp.responseText, "text\/xml");
-			//}
-			
-			var timeNodes = xmlDoc.getElementsByTagName('time');
-			var timeValue = "";
-			if (timeNodes.length == 0)
-			{
-				document.getElementById('time').innerHTML = "";
-				document.getElementById('errors').innerHTML += "No time tag: " + currentFile.name + "\n";				
-			}
-			else
-			{
-				timeValue = timeNodes[0].firstChild.nodeValue;
-				var date = new Date(timeValue);
-				document.getElementById('time').innerHTML = date.toDateString();
-				if (date.toDateString() != currentFile.date.toDateString())
-				{
-					document.getElementById('errors').innerHTML += "Date mismatch: " + currentFile.name + "contains " + date.toDateString() 
-						+ " expected " + currentFile.date.toDateString()
-						+ "\n";
-				}
-			}
-			
-			var nameNodes = xmlDoc.getElementsByTagName('name');
-			if (nameNodes.length == 0)
-			{
-				document.getElementById('name').innerHTML = currentFile.name;
-			}
-			else
-			{
-				var nameValue = nameNodes[0].firstChild.nodeValue;
-				if (nameValue != timeValue)
-				{
-					document.getElementById('name').innerHTML = nameValue;
-				}
-				else
-				{
-					document.getElementById('name').innerHTML = currentFile.name;
-				}
-			}
-			
-			var trkptNodes = xmlDoc.getElementsByTagName('trkpt');
-			if (trkptNodes.length == 0)
-			{
-				//document.getElementById('trkpt').innerHTML = "invalid gpx, skip it."
-				document.getElementById('errors').innerHTML += "Invalid gpx: " + currentFile.name + "\n";				
-			}
-			else
-			{
-				//document.getElementById('trkpt').innerHTML = trkptNodes.length + " trkpts";
-				
-				// Add the track points to the map
-				latLongArray = new google.maps.MVCArray();
-				var bounds = new google.maps.LatLngBounds();
-				for (var i = 0; i < trkptNodes.length; ++i) 
-				{
-					var trkptNode = trkptNodes[i];
-					var lat = trkptNode.attributes.getNamedItem("lat").value;
-					var lon = trkptNode.attributes.getNamedItem("lon").value;
+            // Add the track points to the map
+            latLongArray = new google.maps.MVCArray();
+            var bounds = new google.maps.LatLngBounds();
+            for (var i = 0; i < trkptNodes.length; ++i) 
+            {
+                var trkptNode = trkptNodes[i];
+                var lat = trkptNode.attributes.getNamedItem("lat").value;
+                var lon = trkptNode.attributes.getNamedItem("lon").value;
 
-					
-					var point = new google.maps.LatLng(lat,lon);
-					latLongArray.push(point);
-					bounds.extend(point);
-				}
-				//document.getElementById('trkpt').innerHTML += ", bounds=" + bounds.toString();				
-								
-				if (polyline!=null)
-				{
-					polylineOptions.strokeColor = "#FF0000";
-					polyline.setOptions(polylineOptions);
-				}
-				polylineOptions = {
-					path: latLongArray,
-					strokeColor: "#0000FF",
-					strokeOpacity: 1.0,
-					strokeWeight: 2};
-				polyline = new google.maps.Polyline(polylineOptions);
-				polyline.setMap(map);
+                
+                var point = new google.maps.LatLng(lat,lon);
+                latLongArray.push(point);
+                bounds.extend(point);
+            }
 
-			}
-            //renderTime = renderTime + performance.now() - startRender;
-            //document.getElementById('errors').innerHTML += "download " + downloadTime + ", render " + renderTime + "\n";
+            polylineOptions = {
+                path: latLongArray,
+                strokeColor: "#FF0000",
+                strokeOpacity: 1.0,
+                strokeWeight: 2};
+            polyline = new google.maps.Polyline(polylineOptions);
+            polyline.setMap(map);
 
-//			if (currentFileIndex+1 < filenames.length)
-//			{
-//				currentFileIndex++;
-//				readTrackData();
-//			}
-		}
-	}		
+            loadItems--;
+            document.getElementById('loading').innerHTML =  "Loading... " + loadItems;
+            if (!loadItems)
+            {
+                // Get rid of the loading message and make the map full window
+                var element = document.getElementById("header");
+                element.parentNode.removeChild(element);   
+                element = document.getElementById("map_canvas");
+                element.setAttribute("style", "width:100%; height:100%");
+            }
+        }
+    }
 }
 
 function handleIndexXML()
 {
     if (xmlhttp.readyState == 4) // complete 
-	{
+    {
         if (xmlhttp.status == 200) // OK
-		{
-			xmlDoc=xmlhttp.responseXML;
-			if (xmlDoc == null)
-			{
-				//document.getElementById('trkpt').innerHTML = "invalid XML!";
-				document.getElementById('errors').innerHTML += "Invalid xml: allruns.xml\n";
-				return;
-			}
-			var fileNodes = xmlDoc.getElementsByTagName('file');
-			if (fileNodes.length == 0)
-			{
-				//document.getElementById('trkpt').innerHTML = "invalid xml, no file tag."
-				document.getElementById('errors').innerHTML += "Invalid xml:  allruns.xml\n";				
-				return;
-			}
+        {
+            xmlDoc=xmlhttp.responseXML;
+            if (xmlDoc == null)
+            {
+                return;
+            }
+            var fileNodes = xmlDoc.getElementsByTagName('file');
+            if (fileNodes.length == 0)
+            {
+                return;
+            }
 
-			//document.getElementById('tick').innerHTML = 'index read:";
-			for (var i = 0; i < fileNodes.length; ++i) 
-			{
-				//document.getElementById('tick').innerHTML += i + ",";
-				filenames[i] = fileNodes[i].getElementsByTagName('name')[0].firstChild.nodeValue;
-				
-				var timeValue = fileNodes[i].getElementsByTagName('date')[0].firstChild.nodeValue;
-				var fileDate = new Date(timeValue);
-				//sortedIndex[i] = i;
-				files[i] = {date:fileDate, name:filenames[i]};
-			}
+            for (var i = 0; i < fileNodes.length; ++i) 
+            {
+                var filename = fileNodes[i].getElementsByTagName('name')[0].firstChild.nodeValue;
+                files[i] = filename;
+            }
 
-			
-			//document.getElementById('contents').innerHTML = filenames;
-			document.getElementById('filename').innerHTML = filenames.length + " files";
-			document.getElementById('fileCount').innerHTML = filenames.length;			
+            indexLoaded = true;
+            if (mapInitialized)
+                readTrackData();
             
-            readTrackData();
-            
-
-            initializeMap();
-		}
-	}
+        }
+    }
 }
 
 function readTrackData()
 {
-    //startDownload = performance.now();
-	//
-    
+    loadItems = files.length;
     for (file = 0; file < files.length; file++) { 
         gpxhttp[file]=new XMLHttpRequest();
-        gpxhttp[file].open("GET","runs/"+files[file].name+".gz");
+        gpxhttp[file].open("GET","runs/"+files[file]+".gz");
         gpxhttp[file].onreadystatechange = (function(i) { 
-            return function() { handleXml(gpxhttp[i], files[i], i); } })(file);
-        //gpxhttp.setRequestHeader('accept-encoding','gzip');
-        //gpxhttp.overrideMimeType('text\/xml; charset=x-user-defined');   
+            return function() { handleXml(gpxhttp[i]); } })(file);
         gpxhttp[file].send();
     }    
 }
@@ -237,16 +156,8 @@ src="http://maps.googleapis.com/maps/api/js?key=AIzaSyCyM0mrFrvnIbYkve4hWKY30cjV
 </script>
 
 <div id="header" style="width:100%; height:10%;overflow:auto;">
-<!-- <textarea id=tick>no tick</textarea><br> -->
 
-<span id=name> </span><br/>
-<span id=time> </span><br/>
-(<span id=currentFile>0</span>&#x2F;<span id=fileCount>0</span>)
-<P id=filename> </P>
-<textarea id=errors>Errors:
-</textarea>
-<br/>
-<textarea id=index></textarea>
+<span id=loading>Loading...</span><br/>
 </div>
 
 <div id="map_canvas" style="width:100%; height:90%"></div>
