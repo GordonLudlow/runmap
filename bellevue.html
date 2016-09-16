@@ -320,8 +320,98 @@ function initializeMap()
         // Then the whole problem can by solved by grouping the points into 3 grouping schemes.  The BDFHJ angle, the CEFGI angle and by equal longitude (AFK).
         // Then... find the best F.
         
+        var BDFHJ = {};
+        var CEFGI = {};
+        var AFK = {};
+        
+        for (var p=0; p < portalCount; p++) {
+            var intercept = (portal[p][0] + (4.0*portal[p][1]/7.0)).toFixed(4);
+            if (intercept in BDFHJ) {
+                BDFHJ[intercept].push(portal[p]);
+            }
+            else {
+                BDFHJ[intercept] = [portal[p]];
+            }
+        }
+        for (list in BDFHJ) {
+            if (BDFHJ[list].length > 1) {
+                BDFHJ[list].sort();
+                linePoints = BDFHJ[list].map(function (item) {
+                    return new google.maps.LatLng(item[0], item[1]);
+                });            
+
+                var polyLine = new google.maps.Polyline({
+                    path: linePoints,
+                    strokeColor: '#FF0000',
+                    strokeOpacity: 1.0,
+                    strokeWeight: 2,
+                    map: map
+                });    
+            }                
+            for (point in BDFHJ[list]) {
+                marker = new google.maps.Marker({
+                    map: map,
+                    position: new google.maps.LatLng(BDFHJ[list][point][0], BDFHJ[list][point][1])
+                });
+            }
+        }
+        
+        for (var p=0; p < portalCount; p++) {
+            var intercept = (portal[p][0] - (4.0*portal[p][1]/7.0)).toFixed(4); 
+            if (intercept in CEFGI) {
+                CEFGI[intercept].push(portal[p]);
+            }
+            else {
+                CEFGI[intercept] = [portal[p]];
+            }
+        }
+        for (list in CEFGI) {
+            if (CEFGI[list].length > 1) {
+                CEFGI[list].sort();
+                linePoints = CEFGI[list].map(function (item) {
+                    return new google.maps.LatLng(item[0], item[1]);
+                });            
+
+                var polyLine = new google.maps.Polyline({
+                    path: linePoints,
+                    strokeColor: '#FF0000',
+                    strokeOpacity: 1.0,
+                    strokeWeight: 2,
+                    map: map
+                });    
+            }                
+        }        
+
+        for (var p=0; p < portalCount; p++) {
+            var intercept = portal[p][1].toFixed(4); 
+            if (intercept in AFK) {
+                AFK[intercept].push(portal[p]);
+            }
+            else {
+                AFK[intercept] = [portal[p]];
+            }
+        }
+        for (list in AFK) {
+            if (AFK[list].length > 1) {
+                AFK[list].sort();
+                linePoints = AFK[list].map(function (item) {
+                    return new google.maps.LatLng(item[0], item[1]);
+                });            
+
+                var polyLine = new google.maps.Polyline({
+                    path: linePoints,
+                    strokeColor: '#FF0000',
+                    strokeOpacity: 1.0,
+                    strokeWeight: 2,
+                    map: map
+                });    
+            }                
+        }  
+        
+        /* CONVEX HULLERY
         var label = 0;
         var labels = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+        
         while (portalCount > 1) {
             var pointArray = portal.map(function (item) {
                 var obj = {};
@@ -415,6 +505,7 @@ function initializeMap()
             }
             label++;  
         }
+        */
         
         
     }
