@@ -62,7 +62,7 @@ function handleXml(gpxhttp)
             var tcxFormat = false;
             if (trkptNodes.length == 0) {
                 // Might be a TCX instead of a GPX
-                trkptNodes = xmlDoce.getElementsByTagName('Trackpoint');
+                trkptNodes = xmlDoc.getElementsByTagName('Trackpoint');
                 if (trkptNodes.length > 0) {
                     tcxFormat = true;
                 }
