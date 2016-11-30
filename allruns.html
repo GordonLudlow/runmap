@@ -59,20 +59,31 @@ function handleXml(gpxhttp)
             var xmlText=gpxhttp.responseText;
             
             var trkptNodes = xmlDoc.getElementsByTagName('trkpt');
+            var tcxFormat = false;
+            if (trkptNodes.length == 0) {
+                // Might be a TCX instead of a GPX
+                trkptNodes = xmlDoce.getElementsByTagName('Trackpoint');
+                if (trkptNodes.length > 0) {
+                    tcxFormat = true;
+                }
+            }
 
             // Add the track points to the map
             latLongArray = new google.maps.MVCArray();
-            var bounds = new google.maps.LatLngBounds();
             for (var i = 0; i < trkptNodes.length; ++i) 
             {
                 var trkptNode = trkptNodes[i];
-                var lat = trkptNode.attributes.getNamedItem("lat").value;
-                var lon = trkptNode.attributes.getNamedItem("lon").value;
+                if (tcxFormat) {
+                    var lat = trkptNode.getElementsByTagName('LatitudeDegrees')[0].innerHTML;
+                    var lon = trkptNode.getElementsByTagName('LongitudeDegrees')[0].innerHTML;
+                }
+                else {
+                    var lat = trkptNode.attributes.getNamedItem("lat").value;
+                    var lon = trkptNode.attributes.getNamedItem("lon").value;
+                }
 
-                
                 var point = new google.maps.LatLng(lat,lon);
                 latLongArray.push(point);
-                bounds.extend(point);
             }
 
             polylineOptions = {
