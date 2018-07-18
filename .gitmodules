@@ -1,0 +1,3 @@
+[submodule "lib/sax"]
+	path = lib/sax
+	url = git://github.com/isaacs/sax-js.git
