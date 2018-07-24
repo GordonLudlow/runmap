@@ -25,7 +25,6 @@ var mapInitialized=false;
 var loadItems=0;
 
 var renderable = [];
-
 function initializeMap() 
 {
     if (!mapInitialized)
@@ -34,16 +33,25 @@ function initializeMap()
                             zoom: 10,
                             mapTypeId: google.maps.MapTypeId.ROADMAP };
         map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
-        mapInitialized=true;    
+        mapInitialized=true;
+        var maxZoomService = new google.maps.MaxZoomService();
 
         // Start web worker
-        let webWorker = new Worker("worker.js?v=" + new Date().getTime());
-        //let webWorker = new Worker("worker.js");
+        //let webWorker = new Worker("worker.js?v=" + new Date().getTime());
+        let webWorker = new Worker("worker.js");
         webWorker.postMessage(["initialize", ""]);
         
         // Tell the worker what the bounds are whenever the map zooms or pans
          map.addListener('idle', function() {
             webWorker.postMessage(["bounds", map.getBounds().toUrlValue()]);
+            maxZoomService.getMaxZoomAtLatLng(map.getCenter(), function(response) {
+                if (response.status !== 'OK') {
+                    console.log('Error in MaxZoomService');
+                } 
+                else {
+                    webWorker.postMessage(["maxZoom", map.getZoom() >= response.zoom]);
+              }
+            });            
          });
          
          // Draw/undraw whatever the worker tell us to
@@ -51,11 +59,15 @@ function initializeMap()
             //console.log(message);
             let event = message.data;
             if (event.type == 'line') {
+                //console.log("start line " + event.index);
                 //console.log(event);
-                if (event.index in renderable) {
+                if (renderable[event.index]) {
+                    //console.log("line " + event.index);
                     renderable[event.index].setMap(null);
-                    renderable.splice(event.index, 1);
                 }
+                //else {
+                //    console.log("new line " + event.index);
+                //}
                 
                 // line is of the form [[latFrom, lngFrom], [latTo, lngTo]]
                 let from = 0;
@@ -74,11 +86,50 @@ function initializeMap()
                     strokeWeight: 10};
                 renderable[event.index] = new google.maps.Polyline(polylineOptions);
                 renderable[event.index].setMap(map);
+                
+                //google.maps.event.addListener(renderable[event.index], 'mouseover', 
+                //    function(e) {
+                //        console.log("line " + event.index + " " + event.name);
+                //    }
+                //);
+                //console.log("end line " + event.index);
+            }
+            else if (event.type == 'polyline') {
+                //console.log("start polyline " + event.index);
+                //console.log(event);
+                if (renderable[event.index]) {
+                    //console.log("polyline " + event.index);                
+                    renderable[event.index].setMap(null);
+                }
+                //else {
+                //    console.log("new polysline " + event.index);
+                //}
+                latLongArray = new google.maps.MVCArray();
+                event.line.forEach(function(line) {
+                    latLongArray.push(new google.maps.LatLng(line[0],line[1]));
+                });
+                
+                polylineOptions = {
+                    path: latLongArray,
+                    strokeColor: "#FF0000",
+                    strokeOpacity: 1,
+                    strokeWeight: 2};
+                renderable[event.index] = new google.maps.Polyline(polylineOptions);
+                renderable[event.index].setMap(map);
+                
+                //google.maps.event.addListener(renderable[event.index], 'mouseover', 
+                //    function(e) {
+                //        console.log("polyline " + event.index + " " + event.name);
+                //    }
+                //);                
+                //console.log("end polyline " + event.index);
             }
             else if (event.type == 'remove') {
-                if (event.index in renderable) {
+                //console.log("Event to remove " + event.index);
+                if (renderable[event.index]) {
                     renderable[event.index].setMap(null);
-                    renderable.splice(event.index, 1);
+                    renderable[event.index] = null;
+                    //console.log("Removed " + event.index);
                 }
             }
         };

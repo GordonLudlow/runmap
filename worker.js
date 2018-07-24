@@ -7,6 +7,8 @@ var strict = true, // set to false for html-mode
 
 var runs = [];
 var bounds = [];
+var gpxhttp = [];
+var maxZoom = false;
 
 // run states
 const kNotDrawn = 0;
@@ -65,26 +67,107 @@ updateRunStates = function() {
     // TODO: Add max zoom message
     // TODO: Cluster circles
     // TODO: Draw something when there's no on screen runs.  Maybe arrows with numbers showing how many runs are in which direction.
-    if (onScreen.length < 100) {
+    if (onScreen.length < 50 || maxZoom) { 
         // Load individual runs
         onScreen.forEach(function(i) {
             if (runs[i].state != kPolyLine) {
+                if (runs[i].state == kNotDrawn) {
+                    // Give it a line while waiting for the load
+                    postMessage({type: "line", index: i, line: runs[i].line, name: runs[i].name});
+                }
                 runs[i].state = kPolyLine;
                 // Load the track data
-                xmlhttp=new XMLHttpRequest();
-                xmlhttp.open("GET", runs[i[.name);
-                xmlhttp.onreadystatechange = function() {
-                if (xmlhttp.readyState == 4) { // complete 
-                    if (xmlhttp.status == 200) { // OK
+                gpxhttp[i]=new XMLHttpRequest();
+                gpxhttp[i].open("GET", "./runs/" + runs[i].name + ".gz");
+                gpxhttp[i].onreadystatechange = function(i) {
+                    return function() {
+                        if (gpxhttp[i].readyState == 4) { // complete 
+                            if (gpxhttp[i].status == 200) { // OK
+                                if (runs[i].state != kPolyLine) {
+                                    return;  // the world has moved on
+                                }
+                                let points = [];
+                                let lat = null;
+                                let lng = null;
+                                let tag = null;
+                                parser.onerror = function (e) {
+                                  // an error happened.
+                                  console.log("Parsing error in " + runs[i].name);
+                                  console.log(e);
+                                };
+                                parser.ontext = function (t) {
+                                    // got some text.  t is the string of text.
+                                    //console.log("Got text: " + t);
+                                    if (t.trim().length) {
+                                        if (tag === 'LongitudeDegrees') {
+                                            lng = t;
+                                        }
+                                        else if (tag === 'LatitudeDegrees') {
+                                            lat = t;
+                                        }
+                                        if (lat != null && lng != null) {
+                                            points.push([lat, lng]);
+                                            lat = null;
+                                            lng = null;
+                                        }
+                                    }
+                                };
+                                parser.onopentag = function (node) {
+                                    // opened a tag.  node has "name" and "attributes"
+                                    //console.log("Open tag: " + node.name);
+                                    //console.log(node.attributes);        
+                                    tag = node.name;
+                                    if (tag === 'trkpt') {
+                                        if (node.attributes.hasOwnProperty('lat')) {
+                                            points.push([node.attributes.lat, node.attributes.lon]);
+                                        }
+                                    }
+                                };
+                                parser.onattribute = function (attr) {
+                                    // an attribute.  attr has "name" and "value"
+                                    //console.log("attribute " + attr.name + " = " + attr.value);
+                                    if (tag === 'trkpt') {
+                                        if (attr.name === 'lat') {
+                                            lat = attr.value;
+                                        }
+                                        else if (attr.name === 'lon') {
+                                            lng = attr.value;
+                                        }
+                                        if (lat != null && lng != null) {
+                                            points.push([lat, lng]);
+                                            lat = null;
+                                            lng = null;
+                                        }
+                                    }
+                                };
+                                parser.onend = function () {
+                                    // parser stream is done, and ready to have more stuff written to it.
+                                    //console.log("The End");
+                                    //console.log(points);
+                                    if (runs[i].state != kPolyLine) {
+                                        return;  // the world has moved on
+                                    }                                    
+                                    postMessage({type: "polyline", index: i, line: points, name: runs[i].name});                                    
+                                    points = [];
+                                };
+
+                                parser.write(gpxhttp[i].responseText).close();
+                                gpxhttp[i]=null;
+                            }
+                            else {
+                                console.log(gpxhttp[i]);
+                            }
+                        }
                     }
-                }
+                }(i);
+                gpxhttp[i].send();
             }
         });
     }
     else {
         onScreen.forEach(function(i) {
             if (runs[i].state != kLine) {
-                postMessage({type: "line", index: i, line: runs[i].line});
+                postMessage({type: "line", index: i, line: runs[i].line, name: runs[i].name});
                 runs[i].state = kLine;
             }
         });
@@ -132,7 +215,7 @@ onmessage = function(message) {
                     };
                     parser.onattribute = function (attr) {
                         // an attribute.  attr has "name" and "value"
-                        console.log("attribute " + attr.name + " = " + attr.value);
+                        //console.log("attribute " + attr.name + " = " + attr.value);
                     };
                     parser.onend = function () {
                         // parser stream is done, and ready to have more stuff written to it.
@@ -141,7 +224,7 @@ onmessage = function(message) {
                             obj.state = kNotDrawn;                        
                             runs.push(obj);
                         }
-                        console.log(runs);
+                        //console.log(runs);
                         if (bounds.length) {
                             // We already got the initial map bounds, do the thing
                             updateRunStates();
@@ -160,8 +243,10 @@ onmessage = function(message) {
         if (runs.length) {
             updateRunStates();
         }
-        //console.log(bounds);
-        // a string of the form "lat_lo,lng_lo,lat_hi,lng_hi" for this bounds, where "lo" corresponds to the southwest corner of the bounding box, while "hi" corresponds to the northeast corner of that box.
-    }    
+        return;
+    }
+    if (message.data[0] == "maxZoom") {
+        maxZoom = message.data[1];
+    }
 }
 
