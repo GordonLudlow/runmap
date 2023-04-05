@@ -46,11 +46,14 @@ def convex_hull(points):
     return lower[:-1] + upper[:-1]
 
  
-tree = ET.parse('/Volumes/C/Users/gordonl/Documents/public_html/allruns.xml')
+tree = ET.parse('./allruns.xml')
 root = tree.getroot()
 
-for osroot, dirs, files in os.walk('/Volumes/C/Users/gordonl/Documents/public_html/newruns'):
+for osroot, dirs, files in os.walk('./newruns'):
     for file in files:
+        if file.startswith('.'):
+            continue
+        print(file)
         doc = minidom.parse(os.path.join(osroot,file))
         tcxFormat =  doc.getElementsByTagName('Trackpoint').length
         points = doc.getElementsByTagName('trkpt') + doc.getElementsByTagName('Trackpoint')
@@ -70,6 +73,8 @@ for osroot, dirs, files in os.walk('/Volumes/C/Users/gordonl/Documents/public_ht
             else:
                 lat = float(point.getAttribute("lat"))
                 lng = float(point.getAttribute("lon"))
+            if lat == 0 or lng == 0:
+                continue
             pointArray.append((lat,lng))
             if  lat < minLat:
                 minLat = lat
@@ -95,10 +100,10 @@ for osroot, dirs, files in os.walk('/Volumes/C/Users/gordonl/Documents/public_ht
                     maxDistanceSq = distanceSq
                     furthestPoints = [i,j]
 
-        print "AABB: (%.2f,%.2f)-(%.2f,%.2f), furthest points: (%.2f,%.2f)-(%.2f,%.2f)" % (
+        print("AABB: (%.2f,%.2f)-(%.2f,%.2f), furthest points: (%.2f,%.2f)-(%.2f,%.2f)" % (
             minLat, minLng, maxLat, maxLng, 
             hull[furthestPoints[0]][0], hull[furthestPoints[0]][1],
-            hull[furthestPoints[1]][0], hull[furthestPoints[1]][1])
+            hull[furthestPoints[1]][0], hull[furthestPoints[1]][1]))
         run = ET.SubElement(root, "file")
         ET.SubElement(run, "name").text = urllib2.quote(file)
         ET.SubElement(run, "aabb").text = "[[%f,%f],[%f,%f]]" % (minLat, minLng, maxLat, maxLng)

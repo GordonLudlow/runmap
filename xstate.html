@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Gordon's runs</title>
+<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+<style type="text/css">
+html { height: 100% }
+body { height: 100%; margin: 0; padding: 0 }
+</style>
+<script type="text/javascript">
+
+
+var map;
+var latLongArray;
+var polyline=null;
+var polylineOptions;
+var files = []; 
+var gpxhttp = [];
+var xmlhttp;
+var latLongArray2;
+var polyline2=null;
+var polylineOptions2;
+
+var mapInitialized=false;
+var loadItems=0;
+
+var renderable = [];
+function initializeMap() 
+{
+    if (!mapInitialized)
+    {
+        var mapOptions = { center: new google.maps.LatLng(46.969969, -120.013634),
+                            zoom: 7,
+                            mapTypeId: google.maps.MapTypeId.ROADMAP };
+        map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
+        mapInitialized=true;
+        var maxZoomService = new google.maps.MaxZoomService();
+
+        // Start web worker
+        //let webWorker = new Worker("worker.js?v=" + new Date().getTime());
+        let webWorker = new Worker("xstate.js");
+        webWorker.postMessage(["initialize", ""]);
+        
+        // Tell the worker what the bounds are whenever the map zooms or pans
+         map.addListener('idle', function() {
+            webWorker.postMessage(["bounds", map.getBounds().toUrlValue()]);
+            maxZoomService.getMaxZoomAtLatLng(map.getCenter(), function(response) {
+                if (response.status !== 'OK') {
+                    console.log('Error in MaxZoomService');
+                } 
+                else {
+                    webWorker.postMessage(["maxZoom", map.getZoom() >= response.zoom]);
+              }
+            });            
+         });
+         
+         // Draw/undraw whatever the worker tell us to
+        webWorker.onmessage = function(message) {
+            //console.log(message);
+            let event = message.data;
+            if (event.type == 'line') {
+                //console.log("start line " + event.index);
+                //console.log(event);
+                if (renderable[event.index]) {
+                    //console.log("line " + event.index);
+                    renderable[event.index].setMap(null);
+                }
+                //else {
+                //    console.log("new line " + event.index);
+                //}
+                
+                // line is of the form [[latFrom, lngFrom], [latTo, lngTo]]
+                let from = 0;
+                let to = 1;
+                let lat = 0;
+                let lng = 1;
+                
+                latLongArray = new google.maps.MVCArray();
+                latLongArray.push(new google.maps.LatLng(event.line[from][lat],event.line[from][lng]));
+                latLongArray.push(new google.maps.LatLng(event.line[to][lat],event.line[to][lng]));
+
+                polylineOptions = {
+                    path: latLongArray,
+                    strokeColor: "#FF0000",
+                    strokeOpacity: 0.1,
+                    strokeWeight: 10};
+                renderable[event.index] = new google.maps.Polyline(polylineOptions);
+                renderable[event.index].setMap(map);
+                
+                //google.maps.event.addListener(renderable[event.index], 'mouseover', 
+                //    function(e) {
+                //        console.log("line " + event.index + " " + event.name);
+                //    }
+                //);
+                //console.log("end line " + event.index);
+            }
+            else if (event.type == 'polyline') {
+                //console.log("start polyline " + event.index);
+                //console.log(event);
+                if (renderable[event.index]) {
+                    //console.log("polyline " + event.index);                
+                    renderable[event.index].setMap(null);
+                }
+                //else {
+                //    console.log("new polysline " + event.index);
+                //}
+                latLongArray = new google.maps.MVCArray();
+                event.line.forEach(function(line) {
+                    latLongArray.push(new google.maps.LatLng(line[0],line[1]));
+                });
+                
+                polylineOptions = {
+                    path: latLongArray,
+                    strokeColor: "#FF0000",
+                    strokeOpacity: 1,
+                    strokeWeight: 2};
+                renderable[event.index] = new google.maps.Polyline(polylineOptions);
+                renderable[event.index].setMap(map);
+                
+                //google.maps.event.addListener(renderable[event.index], 'mouseover', 
+                //    function(e) {
+                //        console.log("polyline " + event.index + " " + event.name);
+                //    }
+                //);                
+                //console.log("end polyline " + event.index);
+            }
+            else if (event.type == 'remove') {
+                //console.log("Event to remove " + event.index);
+                if (renderable[event.index]) {
+                    renderable[event.index].setMap(null);
+                    renderable[event.index] = null;
+                    //console.log("Removed " + event.index);
+                }
+            }
+        };
+    } 
+}
+
+function handleXml(gpxhttp)
+{
+    if (gpxhttp.readyState == 4) // complete 
+    {
+        if (gpxhttp.status == 200) // OK
+        {
+            var xmlDoc=gpxhttp.responseXML; 
+            var xmlText=gpxhttp.responseText;
+            
+            var trkptNodes = xmlDoc.getElementsByTagName('trkpt');
+            var tcxFormat = false;
+            if (trkptNodes.length == 0) {
+                // Might be a TCX instead of a GPX
+                trkptNodes = xmlDoc.getElementsByTagName('Trackpoint');
+                if (trkptNodes.length > 0) {
+                    tcxFormat = true;
+                }
+            }
+
+            // Add the track points to the map
+            latLongArray = new google.maps.MVCArray();
+            for (var i = 0; i < trkptNodes.length; ++i) 
+            {
+                var trkptNode = trkptNodes[i];
+                if (tcxFormat) {
+                    var lat = trkptNode.getElementsByTagName('LatitudeDegrees')[0].innerHTML;
+                    var lon = trkptNode.getElementsByTagName('LongitudeDegrees')[0].innerHTML;
+                }
+                else {
+                    var lat = trkptNode.attributes.getNamedItem("lat").value;
+                    var lon = trkptNode.attributes.getNamedItem("lon").value;
+                }
+
+                var point = new google.maps.LatLng(lat,lon);
+                latLongArray.push(point);
+            }
+
+            polylineOptions = {
+                path: latLongArray,
+                strokeColor: "#FF0000",
+                strokeOpacity: 1.0,
+                strokeWeight: 2};
+            polyline = new google.maps.Polyline(polylineOptions);
+            polyline.setMap(map);
+
+            loadItems--;
+            document.getElementById('loading').innerHTML =  "Loading... " + loadItems;
+            if (!loadItems)
+            {
+                // Get rid of the loading message and make the map full window
+                var element = document.getElementById("header");
+                element.parentNode.removeChild(element);   
+                element = document.getElementById("map_canvas");
+                element.setAttribute("style", "width:100%; height:100%");
+            }
+        }
+    }
+}
+
+function handleIndexXML()
+{
+    if (xmlhttp.readyState == 4) // complete 
+    {
+        if (xmlhttp.status == 200) // OK
+        {
+            xmlDoc=xmlhttp.responseXML;
+            if (xmlDoc == null)
+            {
+                return;
+            }
+            var fileNodes = xmlDoc.getElementsByTagName('file');
+            if (fileNodes.length == 0)
+            {
+                return;
+            }
+
+            for (var i = 0; i < fileNodes.length; ++i) 
+            {
+                var filename = fileNodes[i].getElementsByTagName('name')[0].firstChild.nodeValue;
+                files[i] = filename;
+
+                var line = JSON.parse(fileNodes[i].getElementsByTagName('line')[0].firstChild.nodeValue);
+                latLongArray2 = new google.maps.MVCArray();
+                var point0 = new google.maps.LatLng(line[0]);
+                var point1 = new google.maps.LatLng(line[1]);
+                latLongArray2.push(point0);                
+                latLongArray2.push(point1);                
+
+                polylineOptions2 = {
+                    path: latLongArray2,
+                    strokeColor: "#AA1111",
+                    strokeOpacity: 1.0,
+                    strokeWeight: 2};
+                polyline2 = new google.maps.Polyline(polylineOptions2);
+                polyline2.setMap(map);                
+            }
+
+            indexLoaded = true;
+            if (mapInitialized)
+                readTrackData();
+            
+        }
+    }
+}
+
+function readTrackData()
+{
+    loadItems = files.length;
+    for (file = 0; file < files.length; file++) { 
+        gpxhttp[file]=new XMLHttpRequest();
+        gpxhttp[file].open("GET","runs/"+files[file]+".gz");
+        gpxhttp[file].onreadystatechange = (function(i) { 
+            return function() { handleXml(gpxhttp[i]); } })(file);
+        gpxhttp[file].send();
+    }    
+}
+
+</script>
+</head>
+
+<body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script>
+    $.getJSON('apikey.json', function (data) {
+        var s = document.createElement("script");
+        s.type = "text/javascript";
+        s.src = "https://maps.googleapis.com/maps/api/js?key=" + data.key + "&callback=initializeMap";
+        $("head").append(s);
+    })
+    .fail(function(jqXHR, textStatus, errorThrown) { 
+        console.log('getJSON request failed! ' + textStatus); 
+        console.log("incoming Text " + jqXHR.responseText);
+    });
+</script>
+<div id="map_canvas" style="width:100%; height:90%"></div>
+</body>
+</html>
+
+<!--
+Extra junk:
+<file><name>16860130262.tcx</name><aabb>[[47.440361,-121.999801],[47.531598,-121.953551]]</aabb><line>[[47.531598,-121.999796],[47.440370,-121.969192]]</line></file>
+<file><name>17900123094.tcx</name><aabb>[[47.517938,-122.010293],[47.532671,-121.973754]]</aabb><line>[[47.524866,-122.010276],[47.519279,-121.973816]]</line></file>
+<file><name>activity_519508878.gpx</name><aabb>[[47.517984,-122.024597],[47.537670,-121.973560]]</aabb><line>[[47.529827,-122.024597],[47.519421,-121.973751]]</line></file>
+<file><name>13201960931.tcx</name><aabb>[[47.526143,-122.018929],[47.533224,-121.995645]]</aabb><line>[[47.529030,-122.018929],[47.529406,-121.995645]]</line></file>
+<file><name>17028972299.tcx</name><aabb>[[47.529231,-122.009808],[47.533667,-121.995356]]</aabb><line>[[47.532621,-122.009808],[47.529844,-121.995356]]</line></file>
+<file><name>activity_503236742.gpx</name><aabb>[[47.529032,-122.007643],[47.533575,-121.994665]]</aabb><line>[[47.532655,-122.007633],[47.529684,-121.994665]]</line></file>
+<file><name>activity_499727850.gpx</name><aabb>[[47.528631,-121.996090],[47.532056,-121.979657]]</aabb><line>[[47.529142,-121.996090],[47.530516,-121.979657]]</line></file>
+<file><name>16811070118.tcx</name><aabb>[[47.532248,-122.001993],[47.538740,-121.980487]]</aabb><line>[[47.536337,-122.001993],[47.532713,-121.980487]]</line></file>
+<file><name>activity_543864922.gpx</name><aabb>[[47.494004,-122.194966],[47.598398,-122.155832]]</aabb><line>[[47.598398,-122.192128],[47.494008,-122.166113]]</line></file>
+<file><name>activity_412001384.gpx</name><aabb>[[47.554669,-122.075604],[47.579813,-122.052569]]</aabb><line>[[47.579800,-122.075568],[47.559875,-122.054878]]</line></file>
+<file><name>activity_403634934.gpx</name><aabb>[[47.580004,-122.194917],[47.602300,-122.179083]]</aabb><line>[[47.602300,-122.185482],[47.580450,-122.179376]]</line></file>
+<file><name>activity_391541708.gpx</name><aabb>[[47.579394,-122.194941],[47.598380,-122.141050]]</aabb><line>[[47.593945,-122.194898],[47.580869,-122.141050]]</line></file>
+<file><name>RK_gpx%20_2012-11-24_1442.gpx</name><aabb>[[47.590749,-122.287835],[47.637020,-122.276619]]</aabb><line>[[47.590771,-122.286731],[47.636950,-122.277110]]</line></file>
+<file><name>CardioTrainer_2012-09-29T19_03_39Z.gpx</name><aabb>[[47.550083,-122.287989],[47.590900,-122.257272]]</aabb><line>[[47.550083,-122.257272],[47.590855,-122.286743]]</line></file>
+<file><name>RK_gpx%20_2012-11-03_1224.gpx</name><aabb>[[47.556822,-122.287938],[47.589758,-122.261752]]</aabb><line>[[47.589758,-122.286257],[47.557025,-122.261891]]</line></file>
+<file><name>CardioTrainer_2012-09-08T15_28_40Z.gpx</name><aabb>[[47.572476,-122.378056],[47.630172,-122.335443]]</aabb><line>[[47.630172,-122.377814],[47.572552,-122.340083]]</line></file>
+<file><name>10765762872.tcx</name><aabb>[[47.510351,-122.355104],[47.568269,-122.302232]]</aabb><line>[[47.568204,-122.355097],[47.510354,-122.302846]]</line></file>
+<file><name>activity_503236754.gpx</name><aabb>[[47.511829,-122.405865],[47.562397,-122.347914]]</aabb><line>[[47.562397,-122.405853],[47.511940,-122.351315]]</line></file>
+
+One of these is a west seattle scribble:
+CardioTrainer_2012-06-30T22_47_16Z.gpx - bad line one
+<file><name>CardioTrainer_2012-06-30T22_47_16Z.gpx</name><aabb>[[47.565546,-122.419227],[47.595220,-122.382114]]</aabb><line>[[47.575056,-122.419183],[47.592247,-122.382114]]</line></file>
+
+CardioTrainer_2012-08-04T15_40_26Z.gpx
+<file><name>CardioTrainer_2012-08-04T15_40_26Z.gpx</name><aabb>[[47.559264,-122.419244],[47.595236,-122.382411]]</aabb><line>[[47.575165,-122.419244],[47.592460,-122.382411]]</line></file>
+
+RK_gpx%20_2012-11-10_1135.gpx - squiggle
+<file><name>RK_gpx%20_2012-11-10_1135.gpx</name><aabb>[[47.569536,-122.419226],[47.595224,-122.381677]]</aabb><line>[[47.575150,-122.419176],[47.591698,-122.381897]]</line></file>
+
+activity_364454508.gpx
+RK_gpx%20_2012-08-04_0841.gpx
+
+Factoria:
+CardioTrainer_2012-08-20T14_03_29Z.gpx
+<file><name>CardioTrainer_2012-08-20T14_03_29Z.gpx</name><aabb>[[47.573199,-122.198929],[47.580639,-122.168651]]</aabb><line>[[47.579532,-122.198929],[47.579281,-122.168651]]</line></file>
+RK_gpx%20_2012-08-20_0705.gpx
+<file><name>RK_gpx%20_2012-08-20_0705.gpx</name><aabb>[[47.573156,-122.198922],[47.580638,-122.168534]]</aabb><line>[[47.579561,-122.198922],[47.579182,-122.168534]]</line></file>
+<file><name>10618786464.tcx</name><aabb>[[47.586266,-122.228018],[47.595243,-122.224131]]</aabb><line>[[47.586266,-122.225457],[47.595238,-122.227681]]</line></file>
+16811070118.tcx
+
+North Seattle
+CardioTrainer_2012-07-21T13_14_47Z.gpx
+<file><name>CardioTrainer_2012-07-21T13_14_47Z.gpx</name><aabb>[[47.590919,-122.336247],[47.744276,-122.301405]]</aabb><line>[[47.590919,-122.336091],[47.744276,-122.323759]]</line></file>
+RK_gpx%20_2012-07-21_0613.gpx
+<file><name>RK_gpx%20_2012-07-21_0613.gpx</name><aabb>[[47.590066,-122.336792],[47.744806,-122.301369]]</aabb><line>[[47.590069,-122.333041],[47.744806,-122.323622]]</line></file>
+RK_gpx%20_2012-08-25_0909.gpx
+<file><name>RK_gpx%20_2012-08-25_0909.gpx</name><aabb>[[47.585882,-122.350885],[47.744928,-122.312053]]</aabb><line>[[47.586131,-122.333961],[47.744928,-122.322951]]</line></file>
+activity_324792491.gpx
+<file><name>activity_324792491.gpx</name><aabb>[[47.592377,-122.355406],[47.720833,-122.317483]]</aabb><line>[[47.720833,-122.345141],[47.592534,-122.326053]]</line></file>
+activity_335047213.gpx
+<file><name>activity_335047213.gpx</name><aabb>[[47.512517,-122.329725],[47.744727,-122.270098]]</aabb><line>[[47.512517,-122.270134],[47.744727,-122.322689]]</line></file>
+shoreline_to_sodo_and_almost_back.gpx
+<file><name>shoreline_to_sodo_and_almost_back.gpx</name><aabb>[[47.585874,-122.350257],[47.744840,-122.312370]]</aabb><line>[[47.586172,-122.333860],[47.744840,-122.322831]]</line></file>
+
+Safco field
+CardioTrainer_2012-07-21T15_56_41Z.gpx
+<file><name>CardioTrainer_2012-07-21T15_56_41Z.gpx</name><aabb>[[47.588309,-122.334214],[47.592816,-122.329898]]</aabb><line>[[47.588482,-122.332842],[47.592816,-122.331389]]</line></file>
+RK_gpx%20_2012-07-21_0908.gpx
+<file><name>RK_gpx%20_2012-07-21_0908.gpx</name><aabb>[[47.588317,-122.334215],[47.592827,-122.329901]]</aabb><line>[[47.588555,-122.333047],[47.592729,-122.331173]]</line></file>
+RK_gpx%20_2012-08-25_0909.gpx is the north seattle one that links downtown seattle
+20150718120957.gpx
+<file><name>20150718120957.gpx</name><aabb>[[47.588314,-122.334000],[47.592664,-122.330485]]</aabb><line>[[47.588317,-122.332999],[47.592664,-122.330799]]</line></file>
+CardioTrainer_2012-08-04T17_29_49Z.gpx
+<file><name>CardioTrainer_2012-08-04T17_29_49Z.gpx</name><aabb>[[47.571028,-122.382040],[47.599485,-122.330758]]</aabb><line>[[47.591117,-122.382040],[47.592629,-122.330758]]</line></file>
+RK_gpx%20_2012-08-04_0841.gpx
+<file><name>RK_gpx%20_2012-08-04_0841.gpx</name><aabb>[[47.559307,-122.419257],[47.599475,-122.330777]]</aabb><line>[[47.575169,-122.419257],[47.599140,-122.331722]]</line></file>
+activity_547403285.gpx
+<file><name>activity_547403285.gpx</name><aabb>[[47.588220,-122.334361],[47.592978,-122.330390]]</aabb><line>[[47.588220,-122.332903],[47.592497,-122.330577]]</line></file>
+
+Need one of these:
+RK_gpx%20_2012-08-04_0841.gpx
+CardioTrainer_2012-08-04T17_29_49Z.gpx
+
+Lake Washington loop:
+<file><name>20150530114438.gpx</name><aabb>[[47.544649,-122.132541],[47.664603,-122.041064]]</aabb><line>[[47.659680,-122.132081],[47.544690,-122.041096]]</line></file>
+
+Or....?
+20150802084232.gpx
+<file><name>20150802084232.gpx</name><aabb>[[47.485066,-122.304934],[47.758377,-122.166598]]</aabb><line>[[47.753538,-122.280234],[47.493717,-122.166672]]</line></file>
+activity_301441135.gpx
+<file><name>activity_301441135.gpx</name><aabb>[[47.497610,-122.322623],[47.744365,-122.179377]]</aabb><line>[[47.744365,-122.322623],[47.497612,-122.205817]]</line></file>
+activity_309058646.gpx
+<file><name>activity_309058646.gpx</name><aabb>[[47.503311,-122.322707],[47.758444,-122.179486]]</aabb><line>[[47.503311,-122.201148],[47.744598,-122.322707]]</line></file>
+activity_356711629.gpx
+<file><name>activity_356711629.gpx</name><aabb>[[47.578352,-122.322664],[47.758415,-122.186952]]</aabb><line>[[47.744578,-122.322664],[47.579113,-122.188655]]</line></file>
+
+
+-->

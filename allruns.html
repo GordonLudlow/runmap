@@ -17,6 +17,9 @@ var polylineOptions;
 var files = []; 
 var gpxhttp = [];
 var xmlhttp;
+var latLongArray2;
+var polyline2=null;
+var polylineOptions2;
 
 var mapInitialized=false;
 var indexLoaded=false;
@@ -129,6 +132,21 @@ function handleIndexXML()
             {
                 var filename = fileNodes[i].getElementsByTagName('name')[0].firstChild.nodeValue;
                 files[i] = filename;
+
+                var line = JSON.parse(fileNodes[i].getElementsByTagName('line')[0].firstChild.nodeValue);
+                latLongArray2 = new google.maps.MVCArray();
+                var point0 = new google.maps.LatLng(line[0]);
+                var point1 = new google.maps.LatLng(line[1]);
+                latLongArray2.push(point0);                
+                latLongArray2.push(point1);                
+
+                polylineOptions2 = {
+                    path: latLongArray2,
+                    strokeColor: "#AA1111",
+                    strokeOpacity: 1.0,
+                    strokeWeight: 2};
+                polyline2 = new google.maps.Polyline(polylineOptions2);
+                polyline2.setMap(map);                
             }
 
             indexLoaded = true;
@@ -158,7 +176,7 @@ function readTrackData()
 
 <script type="text/javascript">
 xmlhttp=new XMLHttpRequest();
-xmlhttp.open("GET","allruns.xml");
+xmlhttp.open("GET","allruns.xml?time=" + Date.now());
 xmlhttp.onreadystatechange = handleIndexXML;
 xmlhttp.send();
 </script>
