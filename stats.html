@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Run Gordon run - Cross-state stats</title>
+
+    <link rel="icon" type="image/png" href="icon.png">
+
+    <link data-require="jqueryui" data-semver="1.10.0" rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.0/css/smoothness/jquery-ui-1.10.0.custom.min.css" />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="dragtable.css" />
+    <script data-require="jquery" data-semver="1.9.1" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script data-require="jqueryui" data-semver="1.10.0" src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.0/jquery-ui.js"></script>
+    <!-- <script src="jquery.dragtable.js"></script> -->
+    <script src="jquery.tablesorter.min.js"></script>
+    <!-- <script src="script.js"></script> -->
+
+    <style>
+        table, th, td {
+            border: 1px solid black;
+        }        
+    </style>
+  </head>
+  <body>
+      <h1>Statistics for the Cross-Washington Section Run</h1>
+      <table>
+          <tr><td>Number of runs</td><td colspan=2>73</td></tr>
+          <tr><td>Theoretical distance</td><td>416 miles</td><td><a href="https://www.google.com/maps/dir/46.634365,-123.958763/47.2958908,-117.0399095/@46.8111684,-124.9856257,6z/data=!3m1!4b1!4m2!4m1!3e2">Google Maps</a></td></tr>
+          <tr><td>Actual distance logged</td><td colspan=2>1689 km (1049 miles)</td></tr>
+          <tr><td>Total time required</td><td colspan=2>10 days, 19 hours, 38 minutes and 16 seconds</td></tr>
+          <tr><td>First run chronologically</td><td>August 1, 2012</td><td><a href="onerun.html?run=RK_gpx%20_2012-08-01_0815.gpx&lat=47.585154&lng=-122.1337375&zoom=14">map</a></td></tr>
+          <tr><td>Last run chronologically</td><td>May 22, 2021</td><td><a href="onerun.html?run=activity_6824335490.gpx&lat=47.268152&lng=-117.061034&zoom=13">map</a></td></tr>
+          <tr><td>Longest distance run</td><td>67.7 km (42 miles)</td><td><a href="onerun.html?run=20150719083835.gpx&lat=47.423902&lng=-121.617570&zoom=11">map</a></td></tr>
+          <tr><td>Longest duration run</td><td>10 hours, 57 minutes and 22 seconds</td><td><a href="onerun.html?run=20150628122751.gpx&lat=47.312418&lng=-121.344370&zoom=11">map</a></td></tr>
+          <tr><td>Shortest run</td><td>0.58 km (0.36 miles)<br>9 minutes and 29 seconds</td><td><a href="onerun.html?run=activity_5628381054.gpx&lat=47.206649&lng=-117.579651&zoom=16">map</a></td></tr>
+          <tr><td>Fastest run</td><td>8.0 mph</td><td><a href="onerun.html?run=RK_gpx%20_2012-08-15_0840.gpx&lat=47.579678&lng=-122.154673&zoom=15">map</a></td></tr>
+          <tr><td>Slowest run</td><td>2.3 mph</td><td><a href="onerun.html?run=activity_5628381054.gpx&lat=47.206649&lng=-117.579651&zoom=16">map</a></td></tr>
+          <tr><td>Month with the most runs</td><td>August 2012</td><td>8 runs</td></tr>
+          <tr><td>Month with the most distance logged</td><td>October 2020</td><td>135.7 km (84.3 miles)</td></tr>
+          <tr><td>Month with the most time logged</td><td>October 2020</td><td>22 hours, 50 minutes and 49 seconds</td></tr>
+      </table>
+      
+      <h2>Monthly statistics</h2>
+      <img src="runs.png">
+      <img src="km.png">
+      <img src="miles.png">
+      <img src="hours.png">
+
+      <h2>Run details</h2>
+      <table id="myTable" class="tablesorter">
+        <thead>
+          <tr>
+            <th class="sorter-mmddyy">Date</th>
+            <th>Distance</th>
+            <th>Time</th>
+            <th>Map</th>
+          </tr>
+        </thead>
+        <tbody>
+            <tr><td>June 02, 2018</td><td>40.6 km (25.2 miles)</td><td>7.78 hours</td><td><a href="onerun.html?run=14633223478.tcx&lat=46.89313608407974&lng=-120.12617534399033&zoom=11">map</a></td></tr>
+            <tr><td>October 22, 2017</td><td>32.6 km (20.2 miles)</td><td>5.16 hours</td><td><a href="onerun.html?run=10548912133.tcx&lat=47.48975443840027&lng=-122.3510952591896&zoom=11">map</a></td></tr>
+            <tr><td>November 18, 2017</td><td>37.4 km (23.2 miles)</td><td>5.84 hours</td><td><a href="onerun.html?run=10968220046.tcx&lat=47.448150634765625&lng=-122.31153947114944&zoom=11">map</a></td></tr>
+            <tr><td>December 23, 2017</td><td>42.3 km (26.3 miles)</td><td>7.08 hours</td><td><a href="onerun.html?run=11468889477.tcx&lat=47.349353551864624&lng=-122.35236567258835&zoom=11">map</a></td></tr>
+            <tr><td>December 29, 2017</td><td>2.9 km (1.8 miles)</td><td>0.42 hours</td><td><a href="onerun.html?run=11570730766.tcx&lat=47.40062266588211&lng=-122.32869213819504&zoom=11">map</a></td></tr>
+            <tr><td>January 20, 2018</td><td>42.2 km (26.2 miles)</td><td>6.4 hours</td><td><a href="onerun.html?run=11923014827.tcx&lat=47.27754706144333&lng=-122.39573407173157&zoom=11">map</a></td></tr>
+            <tr><td>April 01, 2018</td><td>42.0 km (26.1 miles)</td><td>6.88 hours</td><td><a href="onerun.html?run=13292630202.tcx&lat=47.11987167596817&lng=-120.77492541074753&zoom=11">map</a></td></tr>
+            <tr><td>April 22, 2018</td><td>42.2 km (26.2 miles)</td><td>6.07 hours</td><td><a href="onerun.html?run=13720897403.tcx&lat=47.0341312289238&lng=-120.5793467760086&zoom=11">map</a></td></tr>
+            <tr><td>May 19, 2018</td><td>42.1 km (26.1 miles)</td><td>6.65 hours</td><td><a href="onerun.html?run=14319358301.tcx&lat=46.958282232284546&lng=-120.35794568061829&zoom=11">map</a></td></tr>
+            <tr><td>November 23, 2018</td><td>21.2 km (13.2 miles)</td><td>3.05 hours</td><td><a href="onerun.html?run=18251804894.tcx&lat=46.64589786529541&lng=-123.72164767980576&zoom=11">map</a></td></tr>
+            <tr><td>November 23, 2018</td><td>21.3 km (13.3 miles)</td><td>3.54 hours</td><td><a href="onerun.html?run=18252197081.tcx&lat=46.57396626472473&lng=-123.5534119606018&zoom=11">map</a></td></tr>
+            <tr><td>April 06, 2015</td><td>24.6 km (15.3 miles)</td><td>3.03 hours</td><td><a href="onerun.html?run=20150405161756.gpx&lat=47.5250145&lng=-121.85324185&zoom=11">map</a></td></tr>
+            <tr><td>April 20, 2015</td><td>13.7 km (8.5 miles)</td><td>2.01 hours</td><td><a href="onerun.html?run=20150419164626.gpx&lat=47.500500599999995&lng=-121.83219365&zoom=11">map</a></td></tr>
+            <tr><td>April 20, 2015</td><td>8.0 km (5.0 miles)</td><td>1.37 hours</td><td><a href="onerun.html?run=20150419185904.gpx&lat=47.52830145&lng=-121.89561995&zoom=11">map</a></td></tr>
+            <tr><td>June 28, 2015</td><td>62.1 km (38.6 miles)</td><td>10.96 hours</td><td><a href="onerun.html?run=20150628122751.gpx&lat=47.3271687&lng=-121.29285575&zoom=11">map</a></td></tr>
+            <tr><td>July 19, 2015</td><td>66.6 km (41.4 miles)</td><td>10.94 hours</td><td><a href="onerun.html?run=20150719083835.gpx&lat=47.41288035&lng=-121.57937225&zoom=11">map</a></td></tr>
+            <tr><td>August 22, 2015</td><td>32.4 km (20.1 miles)</td><td>4.35 hours</td><td><a href="onerun.html?run=20150822102722.gpx&lat=47.477446400000005&lng=-121.76564635&zoom=11">map</a></td></tr>
+            <tr><td>September 26, 2015</td><td>10.3 km (6.4 miles)</td><td>1.3 hours</td><td><a href="onerun.html?run=20150926153235.gpx&lat=47.412846&lng=-122.3186051&zoom=11">map</a></td></tr>
+            <tr><td>January 18, 2016</td><td>4.6 km (2.9 miles)</td><td>0.67 hours</td><td><a href="onerun.html?run=20160117173323.gpx&lat=47.506301&lng=-121.84271975&zoom=11">map</a></td></tr>
+            <tr><td>May 13, 2017</td><td>13.1 km (8.1 miles)</td><td>1.66 hours</td><td><a href="onerun.html?run=7650134911.tcx&lat=47.21976798772812&lng=-121.13434886932373&zoom=11">map</a></td></tr>
+            <tr><td>June 11, 2017</td><td>16.6 km (10.3 miles)</td><td>2.06 hours</td><td><a href="onerun.html?run=8196919968.tcx&lat=47.200849771499634&lng=-121.08667767047882&zoom=11">map</a></td></tr>
+            <tr><td>July 22, 2017</td><td>17.8 km (11.1 miles)</td><td>2.39 hours</td><td><a href="onerun.html?run=8938572402.tcx&lat=47.18007427453995&lng=-120.9910694360733&zoom=11">map</a></td></tr>
+            <tr><td>August 19, 2017</td><td>21.3 km (13.2 miles)</td><td>2.84 hours</td><td><a href="onerun.html?run=9439406622.tcx&lat=47.17460995912552&lng=-120.88744777441025&zoom=11">map</a></td></tr>
+            <tr><td>August 27, 2012</td><td>5.2 km (3.2 miles)</td><td>0.54 hours</td><td><a href="onerun.html?run=CardioTrainer_2012-08-27T15_12_16Z.gpx&lat=47.574106&lng=-122.12194249999999&zoom=11">map</a></td></tr>
+            <tr><td>September 10, 2012</td><td>6.0 km (3.7 miles)</td><td>0.55 hours</td><td><a href="onerun.html?run=CardioTrainer_2012-09-10T15_30_39Z.gpx&lat=47.557272499999996&lng=-122.07904199999999&zoom=11">map</a></td></tr>
+            <tr><td>September 12, 2012</td><td>6.3 km (3.9 miles)</td><td>0.57 hours</td><td><a href="onerun.html?run=CardioTrainer_2012-09-12T15_25_05Z.gpx&lat=47.56019&lng=-122.05997199999999&zoom=11">map</a></td></tr>
+            <tr><td>September 12, 2012</td><td>5.8 km (3.6 miles)</td><td>? hours</td><td><a href="onerun.html?run=I_90_to_Issaquah.gpx&lat=47.5647472831225&lng=-122.09823910053001&zoom=11">map</a></td></tr>
+            <tr><td>August 01, 2012</td><td>10.6 km (6.6 miles)</td><td>1.03 hours</td><td><a href="onerun.html?run=RK_gpx _2012-08-01_0815.gpx&lat=47.585154&lng=-122.1337375&zoom=11">map</a></td></tr>
+            <tr><td>August 15, 2012</td><td>6.1 km (3.8 miles)</td><td>0.47 hours</td><td><a href="onerun.html?run=RK_gpx _2012-08-15_0840.gpx&lat=47.577940999999996&lng=-122.154044&zoom=11">map</a></td></tr>
+            <tr><td>August 18, 2012</td><td>16.5 km (10.3 miles)</td><td>2.0 hours</td><td><a href="onerun.html?run=RK_gpx _2012-08-18_0953.gpx&lat=47.594044499999995&lng=-122.28716449999999&zoom=11">map</a></td></tr>
+            <tr><td>August 22, 2012</td><td>10.6 km (6.6 miles)</td><td>1.0 hours</td><td><a href="onerun.html?run=RK_gpx _2012-08-22_0741.gpx&lat=47.585416499999994&lng=-122.2219965&zoom=11">map</a></td></tr>
+            <tr><td>March 10, 2019</td><td>25.9 km (16.1 miles)</td><td>3.79 hours</td><td><a href="onerun.html?run=activity_3452278549.tcx&lat=47.22922976128757&lng=-122.4925522506237&zoom=11">map</a></td></tr>
+            <tr><td>March 17, 2019</td><td>42.1 km (26.1 miles)</td><td>6.47 hours</td><td><a href="onerun.html?run=activity_3471717490.tcx&lat=47.12074551265687&lng=-122.45928636286408&zoom=11">map</a></td></tr>
+            <tr><td>August 24, 2013</td><td>14.5 km (9.0 miles)</td><td>2.34 hours</td><td><a href="onerun.html?run=activity_364454508.gpx&lat=47.57330416236073&lng=-122.40099152550101&zoom=11">map</a></td></tr>
+            <tr><td>September 14, 2013</td><td>9.2 km (5.7 miles)</td><td>1.92 hours</td><td><a href="onerun.html?run=activity_377004829.gpx&lat=47.24571361206472&lng=-121.19364752434194&zoom=11">map</a></td></tr>
+            <tr><td>September 15, 2013</td><td>14.5 km (9.0 miles)</td><td>1.69 hours</td><td><a href="onerun.html?run=activity_377004840.gpx&lat=47.24983092863113&lng=-121.2384297279641&zoom=11">map</a></td></tr>
+            <tr><td>December 12, 2013</td><td>6.3 km (3.9 miles)</td><td>0.65 hours</td><td><a href="onerun.html?run=activity_415140378.gpx&lat=47.55233536474407&lng=-122.04640206880867&zoom=11">map</a></td></tr>
+            <tr><td>December 17, 2013</td><td>10.8 km (6.7 miles)</td><td>1.1 hours</td><td><a href="onerun.html?run=activity_416968997.gpx&lat=47.5455435924232&lng=-121.88006948679686&zoom=11">map</a></td></tr>
+            <tr><td>December 28, 2013</td><td>6.2 km (3.8 miles)</td><td>1.07 hours</td><td><a href="onerun.html?run=activity_421571500.gpx&lat=47.54722055979073&lng=-121.8691527703777&zoom=11">map</a></td></tr>
+            <tr><td>January 15, 2014</td><td>4.5 km (2.8 miles)</td><td>0.45 hours</td><td><a href="onerun.html?run=activity_430716062.gpx&lat=47.53428631927818&lng=-121.96705168113112&zoom=11">map</a></td></tr>
+            <tr><td>January 20, 2014</td><td>5.0 km (3.1 miles)</td><td>0.55 hours</td><td><a href="onerun.html?run=activity_433431252.gpx&lat=47.52857551909983&lng=-121.94506506901234&zoom=11">map</a></td></tr>
+            <tr><td>January 22, 2014</td><td>9.7 km (6.0 miles)</td><td>1.05 hours</td><td><a href="onerun.html?run=activity_434341161.gpx&lat=47.5333883240819&lng=-121.91954892128706&zoom=11">map</a></td></tr>
+            <tr><td>January 24, 2014</td><td>5.2 km (3.3 miles)</td><td>0.65 hours</td><td><a href="onerun.html?run=activity_435119350.gpx&lat=47.546344650909305&lng=-121.87900435645133&zoom=11">map</a></td></tr>
+            <tr><td>February 23, 2014</td><td>8.1 km (5.0 miles)</td><td>1.01 hours</td><td><a href="onerun.html?run=activity_450549831.gpx&lat=47.53968216944486&lng=-121.870061410591&zoom=11">map</a></td></tr>
+            <tr><td>January 13, 2014</td><td>11.7 km (7.3 miles)</td><td>1.24 hours</td><td><a href="onerun.html?run=activity_429760796.gpx&lat=47.537580323405564&lng=-122.01023382134736&zoom=11">map</a></td></tr>
+            <tr><td>August 20, 2012</td><td>8.1 km (5.1 miles)</td><td>0.77 hours</td><td><a href="onerun.html?run=RK_gpx _2012-08-20_0705.gpx&lat=47.576897&lng=-122.183728&zoom=11">map</a></td></tr>
+            <tr><td>August 25, 2012</td><td>43.2 km (26.9 miles)</td><td>3.69 hours</td><td><a href="onerun.html?run=RK_gpx _2012-08-25_0909.gpx&lat=47.665405&lng=-122.331469&zoom=11">map</a></td></tr>
+            <tr><td>August 04, 2012</td><td>32.8 km (20.4 miles)</td><td>3.8 hours</td><td><a href="onerun.html?run=RK_gpx _2012-08-04_0841.gpx&lat=47.579391&lng=-122.375017&zoom=11">map</a></td></tr>
+            <tr><td>May 17, 2014</td><td>19.9 km (12.4 miles)</td><td>2.48 hours</td><td><a href="onerun.html?run=activity_503236754.gpx&lat=47.53711294848472&lng=-122.37688927911222&zoom=11">map</a></td></tr>
+            <tr><td>March 04, 2018</td><td>41.8 km (26.0 miles)</td><td>6.46 hours</td><td><a href="onerun.html?run=12740202845.tcx&lat=47.26876664161682&lng=-122.49617499113083&zoom=11">map</a></td></tr>
+            <tr><td>May 04, 2019</td><td>34.7 km (21.6 miles)</td><td>6.11 hours</td><td><a href="onerun.html?run=activity_3618339306.gpx&lat=46.83237816207111&lng=-119.7201796900481&zoom=11">map</a></td></tr>
+            <tr><td>May 19, 2019</td><td>5.6 km (3.5 miles)</td><td>0.73 hours</td><td><a href="onerun.html?run=activity_3664813745.gpx&lat=47.52439387142658&lng=-121.81253661867231&zoom=11">map</a></td></tr>
+            <tr><td>June 01, 2019</td><td>29.0 km (18.0 miles)</td><td>4.67 hours</td><td><a href="onerun.html?run=activity_3705235721.gpx&lat=46.81772173382342&lng=-119.3344105174765&zoom=11">map</a></td></tr>
+            <tr><td>July 20, 2019</td><td>12.9 km (8.0 miles)</td><td>1.77 hours</td><td><a href="onerun.html?run=activity_3864780395.gpx&lat=47.02198976185173&lng=-122.5151599617675&zoom=11">map</a></td></tr>
+            <tr><td>July 21, 2019</td><td>26.3 km (16.4 miles)</td><td>4.05 hours</td><td><a href="onerun.html?run=activity_3868931779.gpx&lat=46.968442015349865&lng=-122.57455496583134&zoom=11">map</a></td></tr>
+            <tr><td>August 17, 2019</td><td>23.0 km (14.3 miles)</td><td>3.42 hours</td><td><a href="onerun.html?run=activity_3960824551.tcx&lat=46.89846808556467&lng=-122.73011122830212&zoom=11">map</a></td></tr>
+            <tr><td>September 21, 2019</td><td>39.9 km (24.8 miles)</td><td>7.2 hours</td><td><a href="onerun.html?run=activity_4083008765.gpx&lat=46.89873706083745&lng=-119.03095850721002&zoom=11">map</a></td></tr>
+            <tr><td>October 19, 2019</td><td>44.7 km (27.8 miles)</td><td>8.43 hours</td><td><a href="onerun.html?run=activity_4173160402.gpx&lat=46.9482642179355&lng=-118.6570488056168&zoom=11">map</a></td></tr>
+            <tr><td>October 19, 2019</td><td>9.0 km (5.6 miles)</td><td>2.16 hours</td><td><a href="onerun.html?run=5.53mi Run.tcx&lat=46.9559138898&lng=-118.4389537255&zoom=11">map</a></td></tr>
+            <tr><td>November 16, 2019</td><td>42.4 km (26.4 miles)</td><td>8.1 hours</td><td><a href="onerun.html?run=activity_4258539008.gpx&lat=47.037845556624234&lng=-118.25503286439925&zoom=11">map</a></td></tr>
+            <tr><td>November 29, 2019</td><td>14.3 km (8.9 miles)</td><td>2.0 hours</td><td><a href="onerun.html?run=activity_4296135368.gpx&lat=46.827466576360166&lng=-122.8602757724002&zoom=11">map</a></td></tr>
+            <tr><td>December 15, 2019</td><td>23.6 km (14.7 miles)</td><td>3.37 hours</td><td><a href="onerun.html?run=activity_4340641509.gpx&lat=46.72367828898132&lng=-122.92380313854665&zoom=11">map</a></td></tr>
+            <tr><td>December 27, 2019</td><td>32.4 km (20.1 miles)</td><td>5.47 hours</td><td><a href="onerun.html?run=activity_4373407534.gpx&lat=46.62814278155565&lng=-123.06284344755113&zoom=11">map</a></td></tr>
+            <tr><td>January 11, 2020</td><td>38.7 km (24.1 miles)</td><td>7.07 hours</td><td><a href="onerun.html?run=activity_4427141249.gpx&lat=46.60364851355553&lng=-123.22533024474978&zoom=11">map</a></td></tr>
+            <tr><td>January 25, 2020</td><td>43.1 km (26.8 miles)</td><td>7.74 hours</td><td><a href="onerun.html?run=activity_4478520053.gpx&lat=46.553447493351996&lng=-123.39836910367012&zoom=11">map</a></td></tr>
+            <tr><td>February 08, 2020</td><td>46.9 km (29.2 miles)</td><td>9.13 hours</td><td><a href="onerun.html?run=activity_4529619297.gpx&lat=47.066041147336364&lng=-117.98726793844253&zoom=11">map</a></td></tr>
+            <tr><td>August 29, 2020</td><td>22.1 km (13.7 miles)</td><td>3.6 hours</td><td><a href="onerun.html?run=activity_5459079537.gpx&lat=46.638540364801884&lng=-123.87398406397551&zoom=11">map</a></td></tr>
+            <tr><td>August 29, 2020</td><td>3.8 km (2.4 miles)</td><td>0.49 hours</td><td><a href="onerun.html?run=activity_5458143109.gpx&lat=46.62814890034497&lng=-123.95626568701118&zoom=11">map</a></td></tr>
+            <tr><td>October 03, 2020</td><td>42.8 km (26.6 miles)</td><td>7.73 hours</td><td><a href="onerun.html?run=activity_5628380948.gpx&lat=47.12921802420169&lng=-117.71866968367249&zoom=11">map</a></td></tr>
+            <tr><td>October 03, 2020</td><td>0.6 km (0.4 miles)</td><td>0.16 hours</td><td><a href="onerun.html?run=activity_5628381054.gpx&lat=47.20782309304923&lng=-117.5811336748302&zoom=11">map</a></td></tr>
+            <tr><td>October 17, 2020</td><td>47.4 km (29.5 miles)</td><td>7.64 hours</td><td><a href="onerun.html?run=activity_5692039038.gpx&lat=47.22253878135234&lng=-117.50979579985142&zoom=11">map</a></td></tr>
+            <tr><td>October 31, 2020</td><td>43.7 km (27.1 miles)</td><td>7.32 hours</td><td><a href="onerun.html?run=activity_5755761212.gpx&lat=47.24396418314427&lng=-117.23900031298399&zoom=11">map</a></td></tr>
+            <tr><td>May 22, 2021</td><td>8.2 km (5.1 miles)</td><td>1.5 hours</td><td><a href="onerun.html?run=activity_6824335490.gpx&lat=47.26885671727359&lng=-117.04978383611888&zoom=11">map</a></td></tr>        </tbody>
+      </table>
+  
+
+      <p><a href="xstate.html">Map of the cross-state runs<br><img src="xstate.png" width="50%"></p>
+      <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            $(function() {
+                $("#myTable").tablesorter({
+                    headers: {
+                        0: { sorter: "shortDate", empty : "top" },
+                        1: { sorter: "digit", string: "top" },
+                        2: { sorter: "digit", string: "top" }
+                    },
+                    sortList: [[0,0]]
+                });
+            });
+        });
+      </script>
+  </body>
+</html>

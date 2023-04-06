@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Run Gordon run</title>
 
+    <link rel="icon" type="image/png" href="icon.png">
+
     <!-- update the version number as needed -->
     <script defer src="/__/firebase/5.9.2/firebase-app.js"></script>
     <!-- include only the Firebase features as you need -->
@@ -15,6 +17,7 @@
     <!-- initialize the SDK after all desired features are loaded -->
     <script defer src="/__/firebase/init.js"></script>
 
+    <!--
     <style media="screen">
       body { background: #ECEFF1; color: rgba(0,0,0,0.87); font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
       #message { background: white; max-width: 360px; margin: 100px auto 16px; padding: 32px 24px; border-radius: 3px; }
@@ -29,49 +32,26 @@
         body { border-top: 16px solid #ffa100; }
       }
     </style>
-  <!--[if IE]>
-  <style>
-  #frame {
-      zoom: 0.2;
-  }
-  </style>
-  <![endif]-->
-  <style>
-  #frame {
-      width: 800px;
-      height: 520px;
-      border: none;
-      -moz-transform: scale(0.2);
-      -moz-transform-origin: 0 0;
-      -o-transform: scale(0.2);
-      -o-transform-origin: 0 0;
-      -webkit-transform: scale(0.2);
-      -webkit-transform-origin: 0 0;
-  }
-  </style>
+    -->
   </head>
   <body>
-    <!--
-    <div id="message">
+<!--    <div id="message">
       <h2>Welcome</h2>
       <h1>Firebase Hosting Setup Complete</h1>
       <p>You're seeing this because you've successfully setup Firebase Hosting. Now it's time to go build something extraordinary!</p>
       <a target="_blank" href="https://firebase.google.com/docs/hosting/">Open Hosting Documentation</a>
     </div>
     <p id="load">Firebase SDK Loading&hellip;</p>
-    -->
-    <div style="float:left" onclick="window.location=allruns.html">
-      All Runs
-    <iframe id="frame" src="allruns.html">
-    </iframe></div>
+-->
+    <table><tr>
+      <td><a href="runmap.html">All runs<br><img src="all.png" width="50%"></a></td>
+      <td><a href="xstate.html">Cross state<br><img src="xstate.png" width="50%"></a></td></tr></table>
 
-    <div style="float:right" onclick="window.location=xstate.html">
-        Cross State
-        <iframe id="frame" src="xstate.html">
-      </iframe></div>
-        
+      <p><a href="runmap.html">All runs</a> is everywhere Gordon Ludlow has run since the advent of consumer GPS devices (so none of the high school runs or following 30 years) except for neighborhood runs covering ground already covered.  It's a lot of lines so you have to zoom in and pan around to see the details.  Zoomed out it's fat blurry lines from the start to the end (or if it's a loop, from the start to the furthest point from the start) of each run.</p>
+      <p><a href="xstate.html">Cross state</a> is those runs that are part of crossing the state of Washington from Bay Center on the Pacific Ocean to the Idaho border.  These draw the details once the individual files load so the fat blurry lines will be replaced if you give it a second.  <a href="stats.html">Statistics</a></p>
+      <p><a href="home.html">COVID</a> travel restrictions inspired the "run every publicly accessible street, trail and alley within a mile from home" challenge while crossing the state was on hold.</p>
 
-    <script>
+<script>
       document.addEventListener('DOMContentLoaded', function() {
         // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
         // // The Firebase SDK is initialized and available here!
@@ -86,10 +66,10 @@
         try {
           let app = firebase.app();
           let features = ['auth', 'database', 'messaging', 'storage'].filter(feature => typeof app[feature] === 'function');
-          document.getElementById('load').innerHTML = `Firebase SDK loaded with ${features.join(', ')}`;
+          //document.getElementById('load').innerHTML = `Firebase SDK loaded with ${features.join(', ')}`;
         } catch (e) {
           console.error(e);
-          document.getElementById('load').innerHTML = 'Error loading the Firebase SDK, check the console.';
+          //document.getElementById('load').innerHTML = 'Error loading the Firebase SDK, check the console.';
         }
       });
     </script>

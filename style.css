@@ -1,0 +1,19 @@
+#myTable {
+    padding:15;
+    border: 0;
+    width: 0;
+    margin: 0 0 0 50;
+    text-align: left;
+}
+
+tbody tr {
+    background: #ddffff;
+}
+
+.dragHandle {
+  background-image: url("http://akottr.github.io/img/handle.png");
+  background-repeat: repeat-x;
+  height: 18px;
+  margin: 0 1px;
+  cursor: move;
+}

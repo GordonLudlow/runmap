@@ -80,7 +80,8 @@ updateRunStates = function() {
                 // Load the track data
                 console.log("Opening " + runs[i].name);
                 gpxhttp[i]=new XMLHttpRequest();
-                gpxhttp[i].open("GET", "./runs/" + runs[i].name + ".gz");
+                //gpxhttp[i].open("GET", "./runs/" + runs[i].name + ".gz");
+                gpxhttp[i].open("GET", "./runs/" + runs[i].name);
                 gpxhttp[i].onreadystatechange = function(i) {
                     return function() {
                         if (gpxhttp[i].readyState == 4) { // complete 

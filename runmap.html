@@ -29,12 +29,32 @@ function initializeMap()
 {
     if (!mapInitialized)
     {
-        var mapOptions = { center: new google.maps.LatLng(47.65, -122.10),
+        var mapCenter = new google.maps.LatLng(33.7095009, -117.9859778);
+        var mapOptions = { center: mapCenter,
                             zoom: 10,
                             mapTypeId: google.maps.MapTypeId.ROADMAP };
         map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
         mapInitialized=true;
         var maxZoomService = new google.maps.MaxZoomService();
+
+        // My Location widget
+        /*
+        var myLocationMarker = new google.maps.Marker({
+            map: map,
+            animation: google.maps.Animation.DROP,
+            position: mapCenter
+        });
+        addYourLocationButton(map, myLocationMarker);
+        */
+        maxZoomService.getMaxZoomAtLatLng(mapCenter, function(response) {
+                if (response.status !== 'OK') {
+                    console.log('Error in MaxZoomService');
+                } 
+                else {
+                    var geoloccontrol = new klokantech.GeolocationControl(map, response.zoom);
+              }
+            });          
+        
 
         // Start web worker
         //let webWorker = new Worker("worker.js?v=" + new Date().getTime());
@@ -136,133 +156,74 @@ function initializeMap()
     } 
 }
 
-function handleXml(gpxhttp)
+/*
+function addYourLocationButton (map, marker) 
 {
-    if (gpxhttp.readyState == 4) // complete 
-    {
-        if (gpxhttp.status == 200) // OK
-        {
-            var xmlDoc=gpxhttp.responseXML; 
-            var xmlText=gpxhttp.responseText;
-            
-            var trkptNodes = xmlDoc.getElementsByTagName('trkpt');
-            var tcxFormat = false;
-            if (trkptNodes.length == 0) {
-                // Might be a TCX instead of a GPX
-                trkptNodes = xmlDoc.getElementsByTagName('Trackpoint');
-                if (trkptNodes.length > 0) {
-                    tcxFormat = true;
-                }
-            }
+    var controlDiv = document.createElement('div');
 
-            // Add the track points to the map
-            latLongArray = new google.maps.MVCArray();
-            for (var i = 0; i < trkptNodes.length; ++i) 
-            {
-                var trkptNode = trkptNodes[i];
-                if (tcxFormat) {
-                    var lat = trkptNode.getElementsByTagName('LatitudeDegrees')[0].innerHTML;
-                    var lon = trkptNode.getElementsByTagName('LongitudeDegrees')[0].innerHTML;
-                }
-                else {
-                    var lat = trkptNode.attributes.getNamedItem("lat").value;
-                    var lon = trkptNode.attributes.getNamedItem("lon").value;
-                }
+    var firstChild = document.createElement('button');
+    firstChild.style.backgroundColor = '#fff';
+    firstChild.style.border = 'none';
+    firstChild.style.outline = 'none';
+    firstChild.style.width = '28px';
+    firstChild.style.height = '28px';
+    firstChild.style.borderRadius = '2px';
+    firstChild.style.boxShadow = '0 1px 4px rgba(0,0,0,0.3)';
+    firstChild.style.cursor = 'pointer';
+    firstChild.style.marginRight = '10px';
+    firstChild.style.padding = '0';
+    firstChild.title = 'Your Location';
+    controlDiv.appendChild(firstChild);
 
-                var point = new google.maps.LatLng(lat,lon);
-                latLongArray.push(point);
-            }
+    var secondChild = document.createElement('div');
+    secondChild.style.margin = '5px';
+    secondChild.style.width = '18px';
+    secondChild.style.height = '18px';
+    secondChild.style.backgroundImage = 'url(https://maps.gstatic.com/tactile/mylocation/mylocation-sprite-2x.png)';
+    secondChild.style.backgroundSize = '180px 18px';
+    secondChild.style.backgroundPosition = '0 0';
+    secondChild.style.backgroundRepeat = 'no-repeat';
+    firstChild.appendChild(secondChild);
 
-            polylineOptions = {
-                path: latLongArray,
-                strokeColor: "#FF0000",
-                strokeOpacity: 1.0,
-                strokeWeight: 2};
-            polyline = new google.maps.Polyline(polylineOptions);
-            polyline.setMap(map);
+    google.maps.event.addListener(map, 'center_changed', function () {
+        secondChild.style['background-position'] = '0 0';
+    });
 
-            loadItems--;
-            document.getElementById('loading').innerHTML =  "Loading... " + loadItems;
-            if (!loadItems)
-            {
-                // Get rid of the loading message and make the map full window
-                var element = document.getElementById("header");
-                element.parentNode.removeChild(element);   
-                element = document.getElementById("map_canvas");
-                element.setAttribute("style", "width:100%; height:100%");
-            }
+    firstChild.addEventListener('click', function () {
+        var imgX = 0,
+            animationInterval = setInterval(function () {
+                imgX = -imgX - 18 ;
+                secondChild.style['background-position'] = imgX+'px 0';
+            }, 500);
+
+        if(navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                var latlng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+                map.setCenter(latlng);
+                clearInterval(animationInterval);
+                secondChild.style['background-position'] = '-144px 0';
+            });
+        } else {
+            clearInterval(animationInterval);
+            secondChild.style['background-position'] = '0 0';
         }
-    }
+    });
+
+    controlDiv.index = 1;
+    map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(controlDiv);
 }
-
-function handleIndexXML()
-{
-    if (xmlhttp.readyState == 4) // complete 
-    {
-        if (xmlhttp.status == 200) // OK
-        {
-            xmlDoc=xmlhttp.responseXML;
-            if (xmlDoc == null)
-            {
-                return;
-            }
-            var fileNodes = xmlDoc.getElementsByTagName('file');
-            if (fileNodes.length == 0)
-            {
-                return;
-            }
-
-            for (var i = 0; i < fileNodes.length; ++i) 
-            {
-                var filename = fileNodes[i].getElementsByTagName('name')[0].firstChild.nodeValue;
-                files[i] = filename;
-
-                var line = JSON.parse(fileNodes[i].getElementsByTagName('line')[0].firstChild.nodeValue);
-                latLongArray2 = new google.maps.MVCArray();
-                var point0 = new google.maps.LatLng(line[0]);
-                var point1 = new google.maps.LatLng(line[1]);
-                latLongArray2.push(point0);                
-                latLongArray2.push(point1);                
-
-                polylineOptions2 = {
-                    path: latLongArray2,
-                    strokeColor: "#AA1111",
-                    strokeOpacity: 1.0,
-                    strokeWeight: 2};
-                polyline2 = new google.maps.Polyline(polylineOptions2);
-                polyline2.setMap(map);                
-            }
-
-            indexLoaded = true;
-            if (mapInitialized)
-                readTrackData();
-            
-        }
-    }
-}
-
-function readTrackData()
-{
-    loadItems = files.length;
-    for (file = 0; file < files.length; file++) { 
-        gpxhttp[file]=new XMLHttpRequest();
-        gpxhttp[file].open("GET","runs/"+files[file]+".gz");
-        gpxhttp[file].onreadystatechange = (function(i) { 
-            return function() { handleXml(gpxhttp[i]); } })(file);
-        gpxhttp[file].send();
-    }    
-}
-
+*/
 </script>
 </head>
 
 <body>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="https://cdn.klokantech.com/maptilerlayer/v1/index.js"></script>
 <script>
     $.getJSON('apikey.json', function (data) {
         var s = document.createElement("script");
         s.type = "text/javascript";
-        s.src = "http://maps.googleapis.com/maps/api/js?key=" + data.key + "&callback=initializeMap";
+        s.src = "https://maps.googleapis.com/maps/api/js?key=" + data.key + "&callback=initializeMap";
         $("head").append(s);
     })
     .fail(function(jqXHR, textStatus, errorThrown) { 

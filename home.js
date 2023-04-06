@@ -1,4 +1,9 @@
-// worker.js for runmap
+// worker.js for runmap, this version is for everything a mile from home
+
+// A mile north of home is 47° 30′ 31″ N, 122° 09′ 58″ W
+// A mile east  of home is 47° 29′ 39″ N, 122° 08′ 41″ W
+// A mile south of home is 47° 28′ 47″ N, 122° 09′ 58″ W
+// A mile west  of home is 47° 29′ 39″ N, 122° 11′ 14″ W
 
 self.importScripts("./lib/sax/lib/sax.js")
 
@@ -49,31 +54,23 @@ intersects = function(aabb, bounds) {
 }
 
 updateRunStates = function() {
-    // In this version, we only have the border to border runs, draw them all
     let onScreen = [];
-    let logMessage = "On screen:\n";
     runs.forEach(function(run, i) {
-        onScreen.push(i);
         if (intersects(run.aabb, bounds)) {
-            logMessage += runs[i].name + "\n";
+            onScreen.push(i);
         }
-        //else {
-        //    if (run.state != kNotDrawn) {
-        //        // Will have to remove it from a cloud, assume kLine or kPolyLine for now
-        //        console.log("Removing " + runs[i].name);
-        //        postMessage({type: "remove", index: i});
-        //        run.state = kNotDrawn;
-        //    }
-        //}
+        else {
+            if (run.state != kNotDrawn) {
+                // Will have to remove it from a cloud, assume kLine or kPolyLine for now
+                console.log("Removing " + runs[i].name);
+                postMessage({type: "remove", index: i});
+                run.state = kNotDrawn;
+            }
+        }
     });
-    console.log(logMessage);
-    //console.log("On screen count = " + onScreen.length);
-    // Depending on the count and whether or not we're at max zoom, drawn lines, polylines or cluster circles
-    // TODO: Add max zoom message
-    // TODO: Cluster circles
-    // TODO: Draw something when there's no on screen runs.  Maybe arrows with numbers showing how many runs are in which direction.
-    //if (onScreen.length < 50 || maxZoom) { 
-    {
+    console.log("On screen count = " + onScreen.length);
+    // In this version, we draw all the details
+    { //if (onScreen.length < 50 || maxZoom) { 
         // Load individual runs
         onScreen.forEach(function(i) {
             if (runs[i].state != kPolyLine) {
@@ -174,20 +171,22 @@ updateRunStates = function() {
             }
         });
     }
-    //else {
-    //    onScreen.forEach(function(i) {
-    //        if (runs[i].state != kLine) {
-    //            postMessage({type: "line", index: i, line: runs[i].line, name: runs[i].name});
-    //            runs[i].state = kLine;
-    //        }
-    //    });
-    //}
+    /*
+    else {
+        onScreen.forEach(function(i) {
+            if (runs[i].state != kLine) {
+                postMessage({type: "line", index: i, line: runs[i].line, name: runs[i].name});
+                runs[i].state = kLine;
+            }
+        });
+    }
+    */
 };
 
 onmessage = function(message) {
     if (message.data[0] == "initialize") {
         xmlhttp=new XMLHttpRequest();
-        xmlhttp.open("GET","xstate.xml?time=" + Date.now());
+        xmlhttp.open("GET","allruns.xml?time=" + Date.now());
         xmlhttp.onreadystatechange = function() {
             if (xmlhttp.readyState == 4) { // complete 
                 if (xmlhttp.status == 200) { // OK
@@ -195,22 +194,20 @@ onmessage = function(message) {
                     let obj = {};
                     parser.onerror = function (e) {
                       // an error happened.
-                      console.log("Parsing error in xstate.xml");
+                      console.log("Parsing error in allruns.xml");
                       console.log(e);
                     };
                     parser.ontext = function (t) {
                         // got some text.  t is the string of text.
-                        //console.log("Got text: " + t + " " + t.length);
-                        if (t.trim().length) {
-                            if (tag === 'name') {
-                                obj.name = t;
-                            }
-                            else if (tag === 'aabb') {
-                                obj.aabb = JSON.parse(t);
-                            }
-                            else if (tag === 'line') {
-                                obj.line = JSON.parse(t);
-                            }
+                        //console.log("Got text: " + t);
+                        if (tag === 'name') {
+                            obj.name = t;
+                        }
+                        else if (tag === 'aabb') {
+                            obj.aabb = JSON.parse(t);
+                        }
+                        else if (tag === 'line') {
+                            obj.line = JSON.parse(t);
                         }
                     };
                     parser.onopentag = function (node) {

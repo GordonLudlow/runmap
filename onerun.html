@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Gordon's runs</title>
+<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+<style type="text/css">
+html { height: 100% }
+body { height: 100%; margin: 0; padding: 0 }
+</style>
+<script type="text/javascript">
+
+
+var map;
+var latLongArray;
+var polyline=null;
+var polylineOptions;
+var files = []; 
+var gpxhttp;
+var xmlhttp;
+var latLongArray2;
+var polyline2=null;
+var polylineOptions2;
+
+var mapInitialized=false;
+var loadItems=0;
+
+var renderable = [];
+
+function GetURLParameter(sParam)
+{
+    let sPageURL = window.location.search.substring(1);
+    return GetURLParameterFromParameters(sPageURL, sParam);
+}
+
+function GetURLParameterFromParameters(parameters, sParam)
+{
+    let sURLVariables = parameters.split('&');
+    for (let i = 0; i < sURLVariables.length; i++)
+    {
+        let sParameterName = sURLVariables[i].split('=');
+        if (sParameterName[0] == sParam)
+        {
+            return sParameterName[1];
+        }
+    }
+    return "";
+}
+
+function GetURLParameterFromUrl(url, sParam)
+{
+    let questionMark = url.indexOf("?");
+    let parameters = url.substr(questionMark+1);
+    return GetURLParameterFromParameters(parameters, sParam);
+}
+
+function initializeMap() 
+{
+    if (mapInitialized)
+    {
+        return;
+    }
+    lat=GetURLParameter("lat");   // 46.969969
+    lng=GetURLParameter("lng");   // -120.013634
+    zoom=GetURLParameter("zoom"); // 7
+    var mapOptions = { center: new google.maps.LatLng(lat, lng),
+                        zoom: parseInt(zoom, 10),
+                        mapTypeId: google.maps.MapTypeId.ROADMAP };
+    map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
+    mapInitialized=true;
+
+    run = GetURLParameter("run");
+
+    gpxhttp=new XMLHttpRequest();
+    gpxhttp.open("GET","runs/"+run);
+    gpxhttp.overrideMimeType('text/xml');
+    gpxhttp.onreadystatechange = (function() { 
+        return function() { handleXml(); } })();
+    gpxhttp.send();    
+}
+
+function handleXml()
+{
+    if (gpxhttp.readyState == 4) // complete 
+    {
+        if (gpxhttp.status == 200) // OK
+        {
+            var xmlDoc=gpxhttp.responseXML; 
+            //var xmlText=gpxhttp.responseText;
+            
+            var trkptNodes = xmlDoc.getElementsByTagName('trkpt');
+            var tcxFormat = false;
+            if (trkptNodes.length == 0) {
+                // Might be a TCX instead of a GPX
+                trkptNodes = xmlDoc.getElementsByTagName('Trackpoint');
+                if (trkptNodes.length > 0) {
+                    tcxFormat = true;
+                }
+            }
+
+            // Add the track points to the map
+            latLongArray = new google.maps.MVCArray();
+            for (var i = 0; i < trkptNodes.length; ++i) 
+            {
+                //console.log(i);
+                var trkptNode = trkptNodes[i];
+                if (tcxFormat) {
+                    if (trkptNode.getElementsByTagName('LatitudeDegrees').length == 0 || 
+                        trkptNode.getElementsByTagName('LongitudeDegrees').length == 0)
+                    {
+                        continue;
+                    }
+                    var lat = trkptNode.getElementsByTagName('LatitudeDegrees')[0].innerHTML;
+                    var lon = trkptNode.getElementsByTagName('LongitudeDegrees')[0].innerHTML;
+                }
+                else {
+                    var lat = trkptNode.attributes.getNamedItem("lat").value;
+                    var lon = trkptNode.attributes.getNamedItem("lon").value;
+                }
+
+                var point = new google.maps.LatLng(lat,lon);
+                latLongArray.push(point);
+            }
+
+            polylineOptions = {
+                path: latLongArray,
+                strokeColor: "#FF0000",
+                strokeOpacity: 1.0,
+                strokeWeight: 2};
+            polyline = new google.maps.Polyline(polylineOptions);
+            polyline.setMap(map);
+        }
+    }
+}
+</script>
+</head>
+
+<body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script>
+    $.getJSON('apikey.json', function (data) {
+        var s = document.createElement("script");
+        s.type = "text/javascript";
+        s.src = "https://maps.googleapis.com/maps/api/js?key=" + data.key + "&callback=initializeMap";
+        $("head").append(s);
+    })
+    .fail(function(jqXHR, textStatus, errorThrown) { 
+        console.log('getJSON request failed! ' + textStatus); 
+        console.log("incoming Text " + jqXHR.responseText);
+    });
+</script>
+<div id="map_canvas" style="width:100%; height:90%"></div>
+</body>
+</html>
